@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, User, Lock } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface FormData {
   name: string;
@@ -19,6 +20,7 @@ const Login = () => {
     password: ''
   });
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -39,10 +41,23 @@ const Login = () => {
         return;
       }
       
+      // В реальном приложении здесь была бы проверка учетных данных
+      // Для демонстрации просто сохраняем данные пользователя
+      const userData = {
+        name: formData.email.split('@')[0], // Используем часть email как имя
+        email: formData.email
+      };
+      
+      // Сохраняем данные пользователя в localStorage
+      localStorage.setItem('user', JSON.stringify(userData));
+      
       toast({
         title: "Успешный вход",
         description: "Вы успешно вошли в свой аккаунт",
       });
+      
+      // Перенаправляем на каталог
+      navigate('/catalog');
     } else {
       // Register logic
       if (!formData.name || !formData.email || !formData.password) {
@@ -54,13 +69,21 @@ const Login = () => {
         return;
       }
       
+      // Сохраняем данные пользователя в localStorage
+      const userData = {
+        name: formData.name,
+        email: formData.email
+      };
+      
+      localStorage.setItem('user', JSON.stringify(userData));
+      
       toast({
         title: "Регистрация завершена",
         description: "Ваш аккаунт был успешно создан",
       });
       
-      // Switch to login after successful registration
-      setIsLogin(true);
+      // Перенаправляем на каталог
+      navigate('/catalog');
     }
   };
   

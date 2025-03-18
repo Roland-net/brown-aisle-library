@@ -1,14 +1,35 @@
 
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ShoppingCart } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, ShoppingCart, User, LogOut } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { cart } = useCart();
+  
+  // Получаем информацию о пользователе из localStorage
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  
+  useEffect(() => {
+    // Проверяем, есть ли данные пользователя в localStorage
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
   
   useEffect(() => {
     const handleScroll = () => {
@@ -30,13 +51,21 @@ const Navbar = () => {
   
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
   
+  // Создаем массив навигационных ссылок без "Вход" (добавим условно позже)
   const navLinks = [
     { name: "О библиотеке", path: "/about" },
     { name: "Каталог", path: "/catalog" },
-    { name: "Вход", path: "/login" },
   ];
   
   const isActive = (path: string) => location.pathname === path;
+  
+  const handleLogout = () => {
+    // Удаляем данные пользователя из localStorage
+    localStorage.removeItem('user');
+    setUser(null);
+    // Перенаправляем на главную страницу
+    navigate('/');
+  };
   
   return (
     <nav 
@@ -72,6 +101,50 @@ const Navbar = () => {
                 )}
               </Link>
             ))}
+            
+            {/* Компонент пользователя (отображается, если пользователь вошел) */}
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative flex items-center space-x-2 text-cream-100 hover:text-cream-50 p-2">
+                    <Avatar className="h-8 w-8 border border-cream-200/30">
+                      <AvatarFallback className="bg-brown-700 text-cream-100">{user.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span className="hidden sm:block text-sm">{user.name}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="flex items-center justify-start gap-2 p-2">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <p className="font-medium">{user.name}</p>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Выйти</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link
+                to="/login"
+                className={`relative px-1 py-2 text-sm font-medium transition-all duration-300 ${
+                  isActive('/login') 
+                    ? 'text-cream-100' 
+                    : 'text-cream-200/80 hover:text-cream-100'
+                }`}
+              >
+                Вход
+                {isActive('/login') && (
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-cream-200 rounded-full" />
+                )}
+              </Link>
+            )}
             
             <Link to="/cart" className="relative text-cream-100 p-2">
               <ShoppingCart size={20} />
@@ -121,6 +194,39 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
+            
+            {user ? (
+              <>
+                <div className="block px-3 py-4 text-base font-medium border-b border-brown-700 text-cream-100">
+                  <div className="flex items-center">
+                    <Avatar className="h-8 w-8 mr-2 border border-cream-200/30">
+                      <AvatarFallback className="bg-brown-700 text-cream-100">{user.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span>{user.name}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left block px-3 py-4 text-base font-medium border-b border-brown-700 text-cream-200/80"
+                >
+                  <div className="flex items-center">
+                    <LogOut className="mr-2 h-5 w-5" />
+                    Выйти
+                  </div>
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className={`block px-3 py-4 text-base font-medium border-b border-brown-700 ${
+                  isActive('/login') 
+                    ? 'text-cream-100' 
+                    : 'text-cream-200/80'
+                }`}
+              >
+                Вход
+              </Link>
+            )}
           </div>
         </div>
       )}
