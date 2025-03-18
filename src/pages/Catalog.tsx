@@ -14,7 +14,7 @@ const booksData: BookType[] = [
     author: "Джейн Остин",
     price: 650,
     genre: "Классическая литература",
-    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image: "https://m.media-amazon.com/images/I/71Q1tPupKjL._AC_UF1000,1000_QL80_.jpg"
   },
   {
     id: 2,
@@ -22,7 +22,7 @@ const booksData: BookType[] = [
     author: "Михаил Булгаков",
     price: 720,
     genre: "Классическая литература",
-    image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image: "https://s1.livelib.ru/boocover/1000530481/o/13c3/Mihail_Bulgakov__Master_i_Margarita.jpeg"
   },
   {
     id: 3,
@@ -30,7 +30,7 @@ const booksData: BookType[] = [
     author: "Джордж Оруэлл",
     price: 580,
     genre: "Антиутопия",
-    image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/c3/1984first.jpg"
   },
   {
     id: 4,
@@ -38,7 +38,7 @@ const booksData: BookType[] = [
     author: "Дж. К. Роулинг",
     price: 850,
     genre: "Фэнтези",
-    image: "https://images.unsplash.com/photo-1626618012641-bfbca5a31239?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image: "https://img3.labirint.ru/rc/343dda45334c7c34bf9840fa3e400f53/363x561q80/books83/825210/cover.jpg"
   },
   {
     id: 5,
@@ -46,7 +46,7 @@ const booksData: BookType[] = [
     author: "Федор Достоевский",
     price: 690,
     genre: "Классическая литература",
-    image: "https://images.unsplash.com/photo-1551029506-0807df4e2031?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image: "https://s1.livelib.ru/boocover/1000326153/o/1cde/Fedor_Dostoevskij__Prestuplenie_i_nakazanie.jpeg"
   },
   {
     id: 6,
@@ -54,7 +54,7 @@ const booksData: BookType[] = [
     author: "Лев Толстой",
     price: 950,
     genre: "Классическая литература",
-    image: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image: "https://img4.labirint.ru/rc/8d31b6d7dfec5c22e4bb276dd73c2a86/363x561q80/books36/352066/cover.jpg"
   },
   {
     id: 7,
@@ -62,7 +62,7 @@ const booksData: BookType[] = [
     author: "Эрих Мария Ремарк",
     price: 680,
     genre: "Современная проза",
-    image: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image: "https://s1.livelib.ru/boocover/1000509055/o/0db7/Erih_Mariya_Remark__Tri_tovarischa.jpeg"
   },
   {
     id: 8,
@@ -70,7 +70,7 @@ const booksData: BookType[] = [
     author: "Дэниел Киз",
     price: 590,
     genre: "Научная фантастика",
-    image: "https://images.unsplash.com/photo-1511108690759-009324a90311?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image: "https://s1.livelib.ru/boocover/1000959521/o/b9dd/Deniel_Kiz__Tsvety_dlya_Eldzhernona.jpeg"
   },
   {
     id: 9,
@@ -78,7 +78,7 @@ const booksData: BookType[] = [
     author: "Джек Лондон",
     price: 710,
     genre: "Современная проза",
-    image: "https://images.unsplash.com/photo-1472396961693-142e6e269027?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image: "https://s1.livelib.ru/boocover/1000522133/o/1c11/Dzhek_London__Martin_Iden.jpeg"
   },
   {
     id: 10,
@@ -86,7 +86,7 @@ const booksData: BookType[] = [
     author: "Артур Конан Дойл",
     price: 760,
     genre: "Детектив",
-    image: "https://images.unsplash.com/photo-1598618253208-d75408cee680?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image: "https://s1.livelib.ru/boocover/1007328003/o/44a3/Artur_Konan_Dojl__Priklyucheniya_Sherloka_Holmsa_sbornik.jpeg"
   },
   {
     id: 11,
@@ -94,7 +94,7 @@ const booksData: BookType[] = [
     author: "Фрэнсис Скотт Фицджеральд",
     price: 620,
     genre: "Классическая литература",
-    image: "https://images.unsplash.com/photo-1466721591366-2d5fba72006d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image: "https://s1.livelib.ru/boocover/1002873147/o/d8bb/Frensis_Skott_Fitsdzherald__Velikij_Getsbi.jpeg"
   },
   {
     id: 12,
@@ -102,7 +102,7 @@ const booksData: BookType[] = [
     author: "Дж. Р. Р. Толкин",
     price: 880,
     genre: "Фэнтези",
-    image: "https://images.unsplash.com/photo-1535666669445-e8c15cd2e7d9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image: "https://s1.livelib.ru/boocover/1001539536/o/aaf9/Dzhon_R._R._Tolkin__Vlastelin_Kolets._Tryohknizhe.jpeg"
   }
 ];
 
