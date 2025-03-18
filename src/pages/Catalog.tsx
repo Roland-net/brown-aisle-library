@@ -30,7 +30,7 @@ const booksData: BookType[] = [
     author: "Джордж Оруэлл",
     price: 580,
     genre: "Антиутопия",
-    image: "https://images.unsplash.com/photo-1585431414144-fc1e818c9dc0?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
   },
   {
     id: 4,
@@ -78,7 +78,7 @@ const booksData: BookType[] = [
     author: "Джек Лондон",
     price: 710,
     genre: "Современная проза",
-    image: "https://images.unsplash.com/photo-1603289847962-9b48151f8d35?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image: "https://images.unsplash.com/photo-1472396961693-142e6e269027?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
   },
   {
     id: 10,
@@ -94,7 +94,7 @@ const booksData: BookType[] = [
     author: "Фрэнсис Скотт Фицджеральд",
     price: 620,
     genre: "Классическая литература",
-    image: "https://images.unsplash.com/photo-1518744386442-2d48bc781953?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image: "https://images.unsplash.com/photo-1466721591366-2d5fba72006d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
   },
   {
     id: 12,
