@@ -56,8 +56,9 @@ const Login = () => {
         description: "Вы успешно вошли в свой аккаунт",
       });
       
-      // Перенаправляем на каталог
+      // Перенаправляем на каталог и перезагружаем страницу
       navigate('/catalog');
+      window.location.reload();
     } else {
       // Register logic
       if (!formData.name || !formData.email || !formData.password) {
@@ -82,8 +83,9 @@ const Login = () => {
         description: "Ваш аккаунт был успешно создан",
       });
       
-      // Перенаправляем на каталог
+      // Перенаправляем на каталог и перезагружаем страницу
       navigate('/catalog');
+      window.location.reload();
     }
   };
   

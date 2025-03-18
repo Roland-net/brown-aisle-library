@@ -63,8 +63,9 @@ const Navbar = () => {
     // Удаляем данные пользователя из localStorage
     localStorage.removeItem('user');
     setUser(null);
-    // Перенаправляем на главную страницу
+    // Перенаправляем на главную страницу и перезагружаем страницу
     navigate('/');
+    window.location.reload();
   };
   
   return (
