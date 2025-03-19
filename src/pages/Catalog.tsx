@@ -30,7 +30,7 @@ const booksData: BookType[] = [
     author: "Джордж Оруэлл",
     price: 580,
     genre: "Антиутопия",
-    image: "https://upload.wikimedia.org/wikipedia/commons/c/c3/1984first.jpg"
+    image: "https://cdn.eksmo.ru/v2/ITD000000000925262/COVER/cover1.jpg"
   },
   {
     id: 4,
@@ -38,7 +38,7 @@ const booksData: BookType[] = [
     author: "Дж. К. Роулинг",
     price: 850,
     genre: "Фэнтези",
-    image: "https://img3.labirint.ru/rc/343dda45334c7c34bf9840fa3e400f53/363x561q80/books83/825210/cover.jpg"
+    image: "https://cdn.eksmo.ru/v2/ITD000000000851711/COVER/cover1.jpg"
   },
   {
     id: 5,
@@ -54,7 +54,7 @@ const booksData: BookType[] = [
     author: "Лев Толстой",
     price: 950,
     genre: "Классическая литература",
-    image: "https://img4.labirint.ru/rc/8d31b6d7dfec5c22e4bb276dd73c2a86/363x561q80/books36/352066/cover.jpg"
+    image: "https://cdn.eksmo.ru/v2/ASE000000000838580/COVER/cover1.jpg"
   },
   {
     id: 7,
@@ -86,7 +86,7 @@ const booksData: BookType[] = [
     author: "Артур Конан Дойл",
     price: 760,
     genre: "Детектив",
-    image: "https://s1.livelib.ru/boocover/1007328003/o/44a3/Artur_Konan_Dojl__Priklyucheniya_Sherloka_Holmsa_sbornik.jpeg"
+    image: "https://cdn.eksmo.ru/v2/AST000000000166078/COVER/cover1.jpg"
   },
   {
     id: 11,
