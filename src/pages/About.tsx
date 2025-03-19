@@ -79,6 +79,50 @@ const About = () => {
         </div>
       </section>
       
+      {/* Founders section */}
+      <section className="py-16 bg-brown-800 text-cream-50">
+        <div className="container mx-auto px-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl font-serif mb-4">Основатели</h2>
+            <div className="w-20 h-1 bg-cream-200 mx-auto" />
+          </motion.div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <motion.div 
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="bg-brown-700 rounded-lg p-6 text-center"
+            >
+              <h3 className="text-2xl font-serif mb-3">Авдалян Роланд</h3>
+              <p className="text-cream-100/80">
+                Основатель и директор библиотеки VOLTRIX. Посвятил свою жизнь расширению доступа к знаниям и литературе.
+              </p>
+            </motion.div>
+            
+            <motion.div 
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="bg-brown-700 rounded-lg p-6 text-center"
+            >
+              <h3 className="text-2xl font-serif mb-3">Хвостов Тимофей</h3>
+              <p className="text-cream-100/80">
+                Соучредитель и главный библиотекарь. Эксперт в области редких изданий и исторической литературы.
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+      
       {/* Mission section */}
       <section className="py-16 bg-brown-100">
         <div className="container mx-auto px-6">

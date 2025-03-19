@@ -15,19 +15,9 @@ import {
 import { BookType } from '@/context/CartContext';
 import { Edit2, Save } from 'lucide-react';
 
-// Получаем данные книг для администрирования
-// В реальном проекте это должно быть получено с сервера
-const getInitialBooks = (): BookType[] => {
-  const booksFromCatalog = JSON.parse(localStorage.getItem('books') || '[]');
-  
-  // Если нет данных в localStorage, используем данные из Catalog.tsx
-  if (booksFromCatalog.length === 0) {
-    // Импортировать не можем напрямую, поэтому данные нужно будет сохранить при первом рендере Catalog.tsx
-    return [];
-  }
-  
-  return booksFromCatalog;
-};
+// Import the book data directly from Catalog.tsx
+// In a real project, this would come from an API
+import { booksData } from '@/utils/booksData';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -38,13 +28,13 @@ const Admin = () => {
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   
   useEffect(() => {
-    // Проверяем, есть ли данные пользователя в localStorage
+    // Check if user data exists in localStorage
     const userData = localStorage.getItem('user');
     if (userData) {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
       
-      // Проверяем, является ли пользователь администратором
+      // Check if user is admin
       if (parsedUser.email !== 'roladn.ttt@mail.ru') {
         toast({
           title: 'Доступ запрещен',
@@ -55,7 +45,7 @@ const Admin = () => {
         return;
       }
     } else {
-      // Если пользователь не авторизован, перенаправляем на страницу входа
+      // If user is not authenticated, redirect to login
       toast({
         title: 'Требуется авторизация',
         description: 'Пожалуйста, войдите в систему',
@@ -65,33 +55,14 @@ const Admin = () => {
       return;
     }
     
-    // Загружаем данные книг из localStorage
-    const storedBooks = getInitialBooks();
-    if (storedBooks.length > 0) {
-      setBooks(storedBooks);
+    // Load books from localStorage or use default data
+    const storedBooks = localStorage.getItem('books');
+    if (storedBooks) {
+      setBooks(JSON.parse(storedBooks));
     } else {
-      // Если данных нет в localStorage, загружаем с Catalog при первом входе
-      fetch('/api/books')
-        .then(res => res.json())
-        .catch(() => {
-          // Если API недоступен, используем данные из компонента Catalog
-          // В реальном проекте здесь будет запрос к API
-          import('@/pages/Catalog')
-            .then(module => {
-              // @ts-ignore - обходим TypeScript, чтобы получить доступ к booksData
-              const catalogBooks = module.default.booksData || [];
-              setBooks(catalogBooks);
-              localStorage.setItem('books', JSON.stringify(catalogBooks));
-            })
-            .catch(error => {
-              console.error('Ошибка при импорте данных о книгах:', error);
-              toast({
-                title: 'Ошибка',
-                description: 'Не удалось загрузить данные о книгах',
-                variant: 'destructive',
-              });
-            });
-        });
+      // If no data in localStorage, use the imported data
+      setBooks(booksData);
+      localStorage.setItem('books', JSON.stringify(booksData));
     }
     
     setLoading(false);
@@ -118,8 +89,6 @@ const Admin = () => {
     
     setBooks(updatedBooks);
     localStorage.setItem('books', JSON.stringify(updatedBooks));
-    
-    // В реальном проекте здесь будет API-запрос для обновления данных на сервере
     
     toast({
       title: 'Успех',
