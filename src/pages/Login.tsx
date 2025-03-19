@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, User, Lock } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -21,6 +21,24 @@ const Login = () => {
   });
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    // При загрузке компонента проверяем наличие данных о книгах в localStorage
+    // Если их нет, загружаем с Catalog
+    if (!localStorage.getItem('books')) {
+      import('@/pages/Catalog')
+        .then(module => {
+          // @ts-ignore - обходим TypeScript, чтобы получить доступ к booksData
+          const catalogBooks = module.default.booksData || [];
+          if (catalogBooks.length > 0) {
+            localStorage.setItem('books', JSON.stringify(catalogBooks));
+          }
+        })
+        .catch(error => {
+          console.error('Ошибка при импорте данных о книгах:', error);
+        });
+    }
+  }, []);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

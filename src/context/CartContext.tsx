@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface BookType {
@@ -8,6 +7,7 @@ export interface BookType {
   price: number;
   genre: string;
   image: string;
+  stock: number; // Добавляем количество в наличии
 }
 
 export interface CartItem extends BookType {

@@ -41,9 +41,16 @@ const BookCard = ({ book }: BookCardProps) => {
       </div>
       
       <div className="p-4 flex-grow flex flex-col">
-        <div className="mb-2">
+        <div className="flex justify-between items-start mb-2">
           <span className="inline-block px-2 py-1 text-xs font-medium bg-brown-100 text-brown-700 rounded-full">
             {book.genre}
+          </span>
+          <span className={`text-xs font-medium rounded-full px-2 py-1 ${
+            book.stock > 5 ? 'bg-green-100 text-green-800' : 
+            book.stock > 0 ? 'bg-yellow-100 text-yellow-800' : 
+            'bg-red-100 text-red-800'
+          }`}>
+            {book.stock > 0 ? `В наличии: ${book.stock}` : 'Нет в наличии'}
           </span>
         </div>
         <h3 className="font-serif font-medium text-lg mb-1 line-clamp-2">{book.title}</h3>

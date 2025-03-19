@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ShoppingCart, User, LogOut } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, LogOut, Settings } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -22,12 +22,16 @@ const Navbar = () => {
   
   // Получаем информацию о пользователе из localStorage
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   useEffect(() => {
     // Проверяем, есть ли данные пользователя в localStorage
     const userData = localStorage.getItem('user');
     if (userData) {
-      setUser(JSON.parse(userData));
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
+      // Проверяем, является ли пользователь администратором
+      setIsAdmin(parsedUser.email === 'roladn.ttt@mail.ru');
     }
   }, []);
   
@@ -56,6 +60,11 @@ const Navbar = () => {
     { name: "О библиотеке", path: "/about" },
     { name: "Каталог", path: "/catalog" },
   ];
+  
+  // Добавляем ссылку администрирования, если пользователь - администратор
+  if (isAdmin) {
+    navLinks.push({ name: "Администрирование", path: "/admin" });
+  }
   
   const isActive = (path: string) => location.pathname === path;
   
@@ -122,6 +131,15 @@ const Navbar = () => {
                     </div>
                   </div>
                   <DropdownMenuSeparator />
+                  {isAdmin && (
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() => navigate('/admin')}
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Администрирование</span>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     className="cursor-pointer"
                     onClick={handleLogout}
