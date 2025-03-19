@@ -2,9 +2,12 @@
 import { Minus, Plus, X, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { motion } from 'framer-motion';
+import CheckoutForm from '@/components/CheckoutForm';
+import { useState } from 'react';
 
 const Cart = () => {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
+  const [showCheckout, setShowCheckout] = useState(false);
   
   const totalPrice = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
   
@@ -45,6 +48,7 @@ const Cart = () => {
                 <h3 className="font-medium">{item.title}</h3>
                 <p className="text-sm text-brown-600">{item.author}</p>
                 <p className="text-brown-800 mt-1">{item.price.toLocaleString()} ₽</p>
+                <p className="text-sm text-brown-600">Осталось в наличии: {item.stock - item.quantity}</p>
               </div>
               
               <div className="flex items-center ml-4">
@@ -60,6 +64,7 @@ const Cart = () => {
                 <button 
                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
                   className="w-8 h-8 flex items-center justify-center rounded-full bg-brown-100 hover:bg-brown-200 transition-colors"
+                  disabled={item.quantity >= item.stock}
                 >
                   <Plus size={16} />
                 </button>
@@ -93,12 +98,21 @@ const Cart = () => {
               Очистить корзину
             </button>
             
-            <button className="btn-primary flex-grow">
-              Оформить заказ
+            <button 
+              onClick={() => setShowCheckout(!showCheckout)} 
+              className="btn-primary flex-grow"
+            >
+              {showCheckout ? "Вернуться к корзине" : "Оформить заказ"}
             </button>
           </div>
         </div>
       </div>
+      
+      {showCheckout && (
+        <div className="border-t border-brown-200 p-6">
+          <CheckoutForm />
+        </div>
+      )}
     </div>
   );
 };

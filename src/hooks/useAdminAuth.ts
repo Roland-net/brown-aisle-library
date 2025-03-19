@@ -64,5 +64,12 @@ export const useAdminAuth = (): UseAdminAuthResult => {
     setLoading(false);
   }, [navigate]);
 
+  // Sync book changes to localStorage
+  useEffect(() => {
+    if (books.length > 0 && !loading) {
+      localStorage.setItem('books', JSON.stringify(books));
+    }
+  }, [books, loading]);
+
   return { user, books, setBooks, loading };
 };

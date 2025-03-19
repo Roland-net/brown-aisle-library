@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, User, Lock } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { Input } from "@/components/ui/input";
 
 interface FormData {
   name: string;
@@ -26,10 +27,9 @@ const Login = () => {
     // При загрузке компонента проверяем наличие данных о книгах в localStorage
     // Если их нет, загружаем с Catalog
     if (!localStorage.getItem('books')) {
-      import('@/pages/Catalog')
+      import('@/utils/booksData')
         .then(module => {
-          // @ts-ignore - обходим TypeScript, чтобы получить доступ к booksData
-          const catalogBooks = module.default.booksData || [];
+          const catalogBooks = module.booksData || [];
           if (catalogBooks.length > 0) {
             localStorage.setItem('books', JSON.stringify(catalogBooks));
           }
@@ -38,7 +38,13 @@ const Login = () => {
           console.error('Ошибка при импорте данных о книгах:', error);
         });
     }
-  }, []);
+    
+    // Проверяем, вошел ли уже пользователь
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      navigate('/profile');
+    }
+  }, [navigate]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -74,9 +80,8 @@ const Login = () => {
         description: "Вы успешно вошли в свой аккаунт",
       });
       
-      // Перенаправляем на каталог и перезагружаем страницу
-      navigate('/catalog');
-      window.location.reload();
+      // Перенаправляем на профиль
+      navigate('/profile');
     } else {
       // Register logic
       if (!formData.name || !formData.email || !formData.password) {
@@ -101,9 +106,8 @@ const Login = () => {
         description: "Ваш аккаунт был успешно создан",
       });
       
-      // Перенаправляем на каталог и перезагружаем страницу
-      navigate('/catalog');
-      window.location.reload();
+      // Перенаправляем на профиль
+      navigate('/profile');
     }
   };
   
@@ -129,13 +133,13 @@ const Login = () => {
                       Имя
                     </label>
                     <div className="relative">
-                      <input
+                      <Input
                         id="name"
                         name="name"
                         type="text"
                         value={formData.name}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 pl-10 border border-brown-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brown-500"
+                        className="pl-10"
                         placeholder="Введите ваше имя"
                       />
                       <User size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brown-400" />
@@ -148,13 +152,13 @@ const Login = () => {
                     Email
                   </label>
                   <div className="relative">
-                    <input
+                    <Input
                       id="email"
                       name="email"
                       type="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 pl-10 border border-brown-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brown-500"
+                      className="pl-10"
                       placeholder="Введите ваш email"
                     />
                     <Mail size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brown-400" />
@@ -166,13 +170,13 @@ const Login = () => {
                     Пароль
                   </label>
                   <div className="relative">
-                    <input
+                    <Input
                       id="password"
                       name="password"
                       type={showPassword ? "text" : "password"}
                       value={formData.password}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 pl-10 border border-brown-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brown-500"
+                      className="pl-10"
                       placeholder="Введите ваш пароль"
                     />
                     <Lock size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brown-400" />

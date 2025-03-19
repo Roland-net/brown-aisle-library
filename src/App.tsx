@@ -15,6 +15,7 @@ import Login from "./pages/Login";
 import CartPage from "./pages/CartPage";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
+import Profile from "./pages/Profile";
 
 // Components
 import Navbar from "./components/Navbar";
@@ -40,6 +41,7 @@ const App = () => (
                   <Route path="/login" element={<Login />} />
                   <Route path="/cart" element={<CartPage />} />
                   <Route path="/admin" element={<Admin />} />
+                  <Route path="/profile" element={<Profile />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </AnimatePresence>

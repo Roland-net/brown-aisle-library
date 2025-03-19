@@ -1,205 +1,92 @@
 
 import { motion } from 'framer-motion';
+import { Book, BookOpen, Users } from 'lucide-react';
 
 const About = () => {
   return (
     <div className="pt-16">
-      {/* Hero section */}
-      <section className="relative bg-brown-900 text-cream-50 py-20">
-        <div className="absolute inset-0 opacity-20">
-          <img 
-            src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80" 
-            alt="Library background" 
-            className="object-cover object-center w-full h-full"
-          />
-        </div>
-        <div className="relative z-10 container mx-auto px-6 text-center">
-          <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-serif font-medium mb-6"
-          >
-            О библиотеке VOLTRIX
-          </motion.h1>
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="w-20 h-1 bg-cream-200 mx-auto mb-8"
-          />
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="text-xl max-w-3xl mx-auto"
-          >
-            Мир книг и знаний, доступный каждому
-          </motion.p>
+      <section className="relative bg-brown-800 text-cream-50 py-16">
+        <div className="container mx-auto px-6">
+          <h1 className="text-3xl md:text-4xl font-serif mb-4">О библиотеке</h1>
+          <p className="text-cream-100/80 max-w-3xl">
+            Узнайте больше о нашей библиотеке, её истории и команде создателей
+          </p>
         </div>
       </section>
       
-      {/* History section */}
       <section className="py-16 bg-cream-50">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="max-w-4xl mx-auto">
             <motion.div 
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="mb-16"
             >
-              <h2 className="text-3xl font-serif text-brown-800 mb-6">История нашей библиотеки</h2>
-              <div className="w-20 h-1 bg-brown-400 mb-8" />
+              <h2 className="text-2xl font-serif text-brown-800 mb-4 flex items-center gap-2">
+                <Book size={24} className="text-brown-700" />
+                Наша миссия
+              </h2>
               <p className="text-brown-700 mb-4">
-                Библиотека VOLTRIX была основана в 1985 году группой энтузиастов и любителей литературы. Изначально она представляла собой небольшую коллекцию книг, расположенную в историческом здании в центре города.
-              </p>
-              <p className="text-brown-700 mb-4">
-                С течением времени, благодаря поддержке местного сообщества и частных пожертвований, библиотека начала активно расширяться, пополняя свою коллекцию редкими изданиями и современной литературой.
+                Наша библиотека стремится сделать чтение доступным для всех. Мы верим, что книги - это не просто источник знаний, 
+                но и способ расширить кругозор, развить воображение и проникнуться новыми идеями.
               </p>
               <p className="text-brown-700">
-                В 2010 году библиотека VOLTRIX переехала в новое современное здание, где сейчас располагаются обширные коллекции книг, мультимедийные залы, выставочные пространства и уютные читальные залы. Сегодня мы гордимся тем, что наша библиотека стала культурным центром города, объединяющим любителей литературы всех возрастов.
+                Мы постоянно расширяем нашу коллекцию, добавляя как классическую литературу, так и современные произведения 
+                различных жанров, чтобы каждый читатель смог найти что-то по своему вкусу.
               </p>
             </motion.div>
             
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="rounded-lg overflow-hidden shadow-lg"
-            >
-              <img 
-                src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" 
-                alt="Library interior" 
-                className="w-full h-full object-cover"
-              />
-            </motion.div>
-          </div>
-        </div>
-      </section>
-      
-      {/* Founders section */}
-      <section className="py-16 bg-brown-800 text-cream-50">
-        <div className="container mx-auto px-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl font-serif mb-4">Основатели</h2>
-            <div className="w-20 h-1 bg-cream-200 mx-auto" />
-          </motion.div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <motion.div 
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="bg-brown-700 rounded-lg p-6 text-center"
-            >
-              <h3 className="text-2xl font-serif mb-3">Авдалян Роланд</h3>
-              <p className="text-cream-100/80">
-                Основатель и директор библиотеки VOLTRIX. Посвятил свою жизнь расширению доступа к знаниям и литературе.
-              </p>
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-brown-700 rounded-lg p-6 text-center"
-            >
-              <h3 className="text-2xl font-serif mb-3">Хвостов Тимофей</h3>
-              <p className="text-cream-100/80">
-                Соучредитель и главный библиотекарь. Эксперт в области редких изданий и исторической литературы.
-              </p>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-      
-      {/* Mission section */}
-      <section className="py-16 bg-brown-100">
-        <div className="container mx-auto px-6">
-          <div className="text-center max-w-3xl mx-auto">
-            <motion.h2 
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="text-3xl font-serif text-brown-800 mb-6"
-            >
-              Наша миссия
-            </motion.h2>
-            <motion.div 
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="w-20 h-1 bg-brown-400 mx-auto mb-8"
-            />
-            <motion.p 
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="text-brown-700 mb-4 text-lg"
+              className="mb-16"
             >
-              Миссия библиотеки VOLTRIX — сделать знания и литературу доступными для всех, создавая пространство для чтения, обучения и культурного обмена.
-            </motion.p>
-            <motion.p 
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-              className="text-brown-700"
-            >
-              Мы стремимся быть не просто хранилищем книг, но местом, где встречаются идеи, где каждый может найти вдохновение и знания. Наша цель — развивать любовь к чтению, поддерживать образование и способствовать культурному развитию нашего сообщества.
-            </motion.p>
-          </div>
-        </div>
-      </section>
-      
-      {/* Stats section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="text-center"
-            >
-              <h3 className="text-4xl font-serif text-brown-800 mb-2">50,000+</h3>
-              <p className="text-brown-600">Книг в коллекции</p>
+              <h2 className="text-2xl font-serif text-brown-800 mb-4 flex items-center gap-2">
+                <BookOpen size={24} className="text-brown-700" />
+                История библиотеки
+              </h2>
+              <p className="text-brown-700 mb-4">
+                Наша библиотека была основана в 2023 году с целью сделать художественную литературу более доступной 
+                для широкой аудитории. Начав с небольшой коллекции, мы постепенно расширили наш каталог до сотен 
+                произведений различных авторов и жанров.
+              </p>
+              <p className="text-brown-700">
+                Сегодня мы продолжаем развиваться, внедряя современные технологии для улучшения пользовательского опыта 
+                и обеспечивая удобный доступ к книгам как онлайн, так и офлайн.
+              </p>
             </motion.div>
             
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-center"
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <h3 className="text-4xl font-serif text-brown-800 mb-2">15,000+</h3>
-              <p className="text-brown-600">Постоянных читателей</p>
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="text-center"
-            >
-              <h3 className="text-4xl font-serif text-brown-800 mb-2">35+</h3>
-              <p className="text-brown-600">Лет истории</p>
+              <h2 className="text-2xl font-serif text-brown-800 mb-6 flex items-center gap-2">
+                <Users size={24} className="text-brown-700" />
+                Наша команда
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-brown-200">
+                  <h3 className="font-medium text-lg mb-2">Авдалян Роланд</h3>
+                  <p className="text-brown-600 mb-3">Основатель и руководитель</p>
+                  <p className="text-brown-700">
+                    Отвечает за стратегическое развитие библиотеки, курирует пополнение 
+                    книжной коллекции и работает над расширением доступности книг для читателей.
+                  </p>
+                </div>
+                
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-brown-200">
+                  <h3 className="font-medium text-lg mb-2">Хвостов Тимофей</h3>
+                  <p className="text-brown-600 mb-3">Технический директор</p>
+                  <p className="text-brown-700">
+                    Руководит разработкой и поддержкой технической инфраструктуры библиотеки, 
+                    включая онлайн-каталог, систему учета книг и цифровые сервисы для читателей.
+                  </p>
+                </div>
+              </div>
             </motion.div>
           </div>
         </div>
