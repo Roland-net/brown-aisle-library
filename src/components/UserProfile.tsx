@@ -17,7 +17,7 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { toast } from '@/components/ui/use-toast';
-import { BookType } from '@/context/CartContext';
+import { BookType, CartItem } from '@/context/CartContext';
 
 interface UserData {
   name: string;
@@ -25,7 +25,7 @@ interface UserData {
   orders?: {
     id: number;
     date: string;
-    items: BookType[];
+    items: CartItem[]; // Changed from BookType[] to CartItem[] which includes quantity
     total: number;
     status: string;
   }[];
