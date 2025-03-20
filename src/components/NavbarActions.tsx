@@ -1,6 +1,6 @@
 
 import { Link } from 'react-router-dom';
-import CartButton from './CartButton';
+import CartNavButton from './CartNavButton';
 import UserMenu from './UserMenu';
 import { useState, useEffect } from 'react';
 
@@ -14,7 +14,7 @@ const NavbarActions = () => {
   
   return (
     <div className="flex items-center gap-4">
-      <CartButton />
+      <CartNavButton />
       
       {isLoggedIn ? (
         <UserMenu />
