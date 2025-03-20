@@ -16,13 +16,25 @@ const Catalog = () => {
   
   // Load books data
   useEffect(() => {
+    // Сначала проверяем localStorage
     const storedBooks = localStorage.getItem('books');
     if (storedBooks) {
-      setBooks(JSON.parse(storedBooks));
-    } else {
-      setBooks(booksData);
-      localStorage.setItem('books', JSON.stringify(booksData));
+      try {
+        const parsedBooks = JSON.parse(storedBooks);
+        if (Array.isArray(parsedBooks) && parsedBooks.length > 0) {
+          setBooks(parsedBooks);
+          console.log('Loaded books from localStorage:', parsedBooks.length);
+          return;
+        }
+      } catch (error) {
+        console.error('Error parsing books from localStorage:', error);
+      }
     }
+    
+    // Если в localStorage нет данных или они некорректны, используем данные из booksData
+    console.log('Using default books data:', booksData.length);
+    setBooks(booksData);
+    localStorage.setItem('books', JSON.stringify(booksData));
   }, []);
   
   // Extract unique genres
@@ -47,6 +59,9 @@ const Catalog = () => {
     
     setFilteredBooks(result);
   }, [selectedGenre, searchTerm, books]);
+  
+  console.log('Current books state:', books.length);
+  console.log('Filtered books:', filteredBooks.length);
   
   return (
     <div className="pt-16">

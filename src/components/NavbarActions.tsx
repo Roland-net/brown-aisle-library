@@ -9,14 +9,30 @@ const NavbarActions = () => {
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setIsLoggedIn(true);
-      setUser(JSON.parse(userData));
-    } else {
-      setIsLoggedIn(false);
-      setUser(null);
-    }
+    const checkUserLogin = () => {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          setIsLoggedIn(true);
+          setUser(parsedUser);
+          console.log("User logged in:", parsedUser);
+        } catch (error) {
+          console.error("Error parsing user data:", error);
+          setIsLoggedIn(false);
+          setUser(null);
+        }
+      } else {
+        setIsLoggedIn(false);
+        setUser(null);
+      }
+    };
+
+    checkUserLogin();
+    
+    // Добавляем слушатель для storage, чтобы обновлять состояние при изменениях в localStorage
+    window.addEventListener('storage', checkUserLogin);
+    return () => window.removeEventListener('storage', checkUserLogin);
   }, []);
   
   return (

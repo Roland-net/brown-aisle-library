@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { User, Package, Settings, LogOut } from 'lucide-react';
 import { 
   Tabs, 
@@ -34,28 +34,55 @@ interface UserData {
 const UserProfile = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Определяем начальную вкладку на основе URL параметра
+  const getInitialTab = () => {
+    const params = new URLSearchParams(location.search);
+    return params.get('tab') === 'orders' ? 'orders' : 'profile';
+  };
+  
+  const [activeTab, setActiveTab] = useState(getInitialTab);
   
   useEffect(() => {
     const storedUserData = localStorage.getItem('user');
     if (storedUserData) {
-      const parsedUser = JSON.parse(storedUserData);
-      
-      // Получаем или создаем историю заказов
-      const ordersData = localStorage.getItem('orders');
-      let orders = [];
-      
-      if (ordersData) {
-        orders = JSON.parse(ordersData);
+      try {
+        const parsedUser = JSON.parse(storedUserData);
+        
+        // Получаем или создаем историю заказов
+        const ordersData = localStorage.getItem('orders');
+        let orders = [];
+        
+        if (ordersData) {
+          try {
+            orders = JSON.parse(ordersData);
+            console.log("Orders loaded:", orders);
+          } catch (error) {
+            console.error("Error parsing orders:", error);
+          }
+        }
+        
+        setUserData({
+          ...parsedUser,
+          orders: orders.filter((order: any) => order.userEmail === parsedUser.email)
+        });
+        
+        console.log("User profile loaded:", parsedUser);
+      } catch (error) {
+        console.error("Error loading user profile:", error);
+        navigate('/login');
       }
-      
-      setUserData({
-        ...parsedUser,
-        orders: orders.filter((order: any) => order.userEmail === parsedUser.email)
-      });
     } else {
+      console.log("No user data found, redirecting to login");
       navigate('/login');
     }
   }, [navigate]);
+  
+  // Обновляем активную вкладку при изменении URL
+  useEffect(() => {
+    setActiveTab(getInitialTab());
+  }, [location.search]);
   
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -79,7 +106,7 @@ const UserProfile = () => {
     <div className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-serif mb-8 text-brown-800">Мой профиль</h1>
       
-      <Tabs defaultValue="profile">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-8">
           <TabsTrigger value="profile" className="px-6">
             <User className="mr-2 h-4 w-4" />

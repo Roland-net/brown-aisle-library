@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import UserProfile from '@/components/UserProfile';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from '@/components/ui/use-toast';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -11,6 +12,11 @@ const Profile = () => {
     // Проверяем, авторизован ли пользователь
     const userData = localStorage.getItem('user');
     if (!userData) {
+      toast({
+        title: "Требуется авторизация",
+        description: "Пожалуйста, войдите в аккаунт для доступа к профилю",
+        variant: "destructive",
+      });
       navigate('/login');
     }
   }, [navigate]);

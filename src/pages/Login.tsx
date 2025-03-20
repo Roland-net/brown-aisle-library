@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, User, Lock } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Input } from "@/components/ui/input";
+import { booksData } from '@/utils/booksData';
 
 interface FormData {
   name: string;
@@ -25,18 +25,10 @@ const Login = () => {
   
   useEffect(() => {
     // При загрузке компонента проверяем наличие данных о книгах в localStorage
-    // Если их нет, загружаем с Catalog
+    // Если их нет, загружаем их
     if (!localStorage.getItem('books')) {
-      import('@/utils/booksData')
-        .then(module => {
-          const catalogBooks = module.booksData || [];
-          if (catalogBooks.length > 0) {
-            localStorage.setItem('books', JSON.stringify(catalogBooks));
-          }
-        })
-        .catch(error => {
-          console.error('Ошибка при импорте данных о книгах:', error);
-        });
+      console.log("Saving books data to localStorage");
+      localStorage.setItem('books', JSON.stringify(booksData));
     }
     
     // Проверяем, вошел ли уже пользователь

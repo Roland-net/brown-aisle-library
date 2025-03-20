@@ -21,7 +21,13 @@ const UserMenu = () => {
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
-      setUser(JSON.parse(userData));
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        console.log('User loaded in UserMenu:', parsedUser);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
     }
   }, []);
   
@@ -36,6 +42,7 @@ const UserMenu = () => {
   };
   
   const getInitials = (name: string) => {
+    if (!name) return "U";
     return name.charAt(0).toUpperCase();
   };
   
