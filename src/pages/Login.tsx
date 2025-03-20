@@ -80,8 +80,9 @@ const Login = () => {
         description: "Вы успешно вошли в свой аккаунт",
       });
       
-      // Перенаправляем на профиль
+      // Перенаправляем на профиль и перезагружаем страницу
       navigate('/profile');
+      window.location.reload();
     } else {
       // Register logic
       if (!formData.name || !formData.email || !formData.password) {
@@ -106,8 +107,9 @@ const Login = () => {
         description: "Ваш аккаунт был успешно создан",
       });
       
-      // Перенаправляем на профиль
+      // Перенаправляем на профиль и перезагружаем страницу
       navigate('/profile');
+      window.location.reload();
     }
   };
   

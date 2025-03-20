@@ -1,5 +1,8 @@
 
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { User, Package, Settings, LogOut } from 'lucide-react';
 import { 
   Tabs, 
   TabsContent, 
@@ -7,55 +10,48 @@ import {
   TabsTrigger 
 } from "@/components/ui/tabs";
 import { 
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
 } from "@/components/ui/card";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage
-} from "@/components/ui/avatar";
-import { User, Package, ClipboardList, LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
-import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { BookType } from '@/context/CartContext';
 
-interface Order {
-  id: number;
-  date: string;
-  items: any[];
-  totalPrice: number;
-  status: string;
-  shippingAddress: {
-    fullName: string;
-    address: string;
-    city: string;
-    phone: string;
-    email: string;
-  };
+interface UserData {
+  name: string;
+  email: string;
+  orders?: {
+    id: number;
+    date: string;
+    items: BookType[];
+    total: number;
+    status: string;
+  }[];
 }
 
 const UserProfile = () => {
-  const [user, setUser] = useState<any>(null);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Load user data
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
+    const storedUserData = localStorage.getItem('user');
+    if (storedUserData) {
+      const parsedUser = JSON.parse(storedUserData);
       
-      // Load user orders
-      const userOrders = localStorage.getItem('userOrders_' + parsedUser.email);
-      if (userOrders) {
-        setOrders(JSON.parse(userOrders));
+      // Получаем или создаем историю заказов
+      const ordersData = localStorage.getItem('orders');
+      let orders = [];
+      
+      if (ordersData) {
+        orders = JSON.parse(ordersData);
       }
+      
+      setUserData({
+        ...parsedUser,
+        orders: orders.filter((order: any) => order.userEmail === parsedUser.email)
+      });
     } else {
       navigate('/login');
     }
@@ -68,78 +64,62 @@ const UserProfile = () => {
       description: "Вы успешно вышли из системы",
     });
     navigate('/login');
+    window.location.reload();
   };
-
-  if (!user) {
+  
+  if (!userData) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <p>Загрузка...</p>
+      <div className="text-center py-12">
+        <p>Загрузка данных пользователя...</p>
       </div>
     );
   }
-
-  const getInitials = (name: string) => {
-    return name.charAt(0).toUpperCase();
-  };
-
+  
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={user.avatarUrl} alt={user.name} />
-            <AvatarFallback className="bg-brown-700 text-white text-xl">
-              {getInitials(user.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h1 className="text-2xl font-serif text-brown-800">{user.name}</h1>
-            <p className="text-brown-600">{user.email}</p>
-          </div>
-        </div>
-        
-        <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 text-brown-700 hover:bg-brown-100 rounded-md transition-colors">
-          <LogOut size={18} />
-          <span>Выйти</span>
-        </button>
-      </div>
+      <h1 className="text-3xl font-serif mb-8 text-brown-800">Мой профиль</h1>
       
-      <Tabs defaultValue="profile" className="w-full">
+      <Tabs defaultValue="profile">
         <TabsList className="mb-8">
-          <TabsTrigger value="profile" className="flex items-center gap-2">
-            <User size={16} />
-            <span>Профиль</span>
+          <TabsTrigger value="profile" className="px-6">
+            <User className="mr-2 h-4 w-4" />
+            Профиль
           </TabsTrigger>
-          <TabsTrigger value="orders" className="flex items-center gap-2">
-            <Package size={16} />
-            <span>Мои заказы</span>
+          <TabsTrigger value="orders" className="px-6">
+            <Package className="mr-2 h-4 w-4" />
+            История заказов
           </TabsTrigger>
         </TabsList>
         
         <TabsContent value="profile">
           <Card>
             <CardHeader>
-              <CardTitle>Личная информация</CardTitle>
-              <CardDescription>Управление данными вашего профиля</CardDescription>
+              <CardTitle>Информация о пользователе</CardTitle>
+              <CardDescription>Просмотр и управление информацией вашего аккаунта.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-brown-700">Имя</label>
-                  <div className="mt-1 p-3 bg-cream-50 rounded-md">{user.name}</div>
+              <div className="space-y-6">
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-medium text-brown-600">Имя</label>
+                  <p className="text-brown-900 font-medium">{userData.name}</p>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-brown-700">Email</label>
-                  <div className="mt-1 p-3 bg-cream-50 rounded-md">{user.email}</div>
+                
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-medium text-brown-600">Email</label>
+                  <p className="text-brown-900 font-medium">{userData.email}</p>
                 </div>
-                {user.email === 'roladn.ttt@mail.ru' && (
-                  <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
-                    <div className="text-amber-800 font-medium">Администратор</div>
-                    <p className="text-amber-700 text-sm mt-1">
-                      У вас есть доступ к панели администрирования
-                    </p>
-                  </div>
-                )}
+                
+                <div className="pt-4">
+                  <button 
+                    onClick={handleLogout}
+                    className="px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-md transition-colors"
+                  >
+                    <div className="flex items-center">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Выйти из аккаунта
+                    </div>
+                  </button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -149,70 +129,50 @@ const UserProfile = () => {
           <Card>
             <CardHeader>
               <CardTitle>История заказов</CardTitle>
-              <CardDescription>Просмотр всех ваших заказов</CardDescription>
+              <CardDescription>Просмотр истории ваших заказов.</CardDescription>
             </CardHeader>
             <CardContent>
-              {orders.length === 0 ? (
-                <div className="text-center py-12">
-                  <ClipboardList size={48} className="mx-auto text-brown-300 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">У вас пока нет заказов</h3>
-                  <p className="text-brown-600">Ваши будущие заказы будут отображаться здесь</p>
-                </div>
-              ) : (
+              {userData.orders && userData.orders.length > 0 ? (
                 <div className="space-y-6">
-                  {orders.map((order) => (
-                    <div key={order.id} className="border border-brown-200 rounded-lg overflow-hidden">
-                      <div className="bg-brown-50 p-4 flex flex-wrap justify-between items-center gap-4">
+                  {userData.orders.map((order) => (
+                    <div key={order.id} className="border border-brown-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-4">
                         <div>
-                          <div className="text-sm text-brown-600">Заказ #{order.id}</div>
-                          <div className="font-medium">
-                            {format(new Date(order.date), "d MMMM yyyy, HH:mm", { locale: ru })}
-                          </div>
+                          <p className="font-medium">Заказ #{order.id}</p>
+                          <p className="text-sm text-brown-600">{new Date(order.date).toLocaleDateString()}</p>
                         </div>
-                        <div>
-                          <div className="text-sm text-brown-600">Статус</div>
-                          <div className="inline-block px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium">
-                            {order.status}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-brown-600">Сумма</div>
-                          <div className="font-medium">{order.totalPrice.toLocaleString()} ₽</div>
-                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          order.status === 'Доставлен' ? 'bg-green-100 text-green-700' :
+                          order.status === 'В обработке' ? 'bg-amber-100 text-amber-700' :
+                          'bg-blue-100 text-blue-700'
+                        }`}>
+                          {order.status}
+                        </span>
                       </div>
                       
-                      <div className="p-4 divide-y divide-brown-100">
+                      <div className="space-y-2">
                         {order.items.map((item) => (
-                          <div key={item.id} className="py-3 flex items-center">
-                            <div className="w-12 h-16 bg-brown-50 rounded overflow-hidden">
-                              <img 
-                                src={item.image} 
-                                alt={item.title} 
-                                className="w-full h-full object-cover"
-                              />
+                          <div key={item.id} className="flex justify-between items-center text-sm">
+                            <div className="flex items-center">
+                              <span className="font-medium">{item.title}</span>
+                              <span className="text-brown-600 ml-2">({item.quantity} шт.)</span>
                             </div>
-                            <div className="ml-3 flex-grow">
-                              <div className="font-medium">{item.title}</div>
-                              <div className="text-sm text-brown-600">{item.author}</div>
-                            </div>
-                            <div className="text-brown-600 text-sm">
-                              {item.quantity} шт. × {item.price.toLocaleString()} ₽
-                            </div>
+                            <span>{(item.price * item.quantity).toLocaleString()} ₽</span>
                           </div>
                         ))}
                       </div>
                       
-                      <div className="p-4 bg-brown-50 border-t border-brown-200">
-                        <div className="text-sm font-medium mb-1">Адрес доставки:</div>
-                        <div className="text-brown-700">
-                          {order.shippingAddress.fullName}, {order.shippingAddress.phone}
-                        </div>
-                        <div className="text-brown-700">
-                          {order.shippingAddress.city}, {order.shippingAddress.address}
-                        </div>
+                      <div className="mt-4 pt-4 border-t border-brown-200 flex justify-between">
+                        <span className="font-medium">Итого:</span>
+                        <span className="font-medium">{order.total.toLocaleString()} ₽</span>
                       </div>
                     </div>
                   ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-brown-600">
+                  <Package className="mx-auto h-12 w-12 text-brown-400 mb-4" />
+                  <p>У вас пока нет заказов</p>
                 </div>
               )}
             </CardContent>

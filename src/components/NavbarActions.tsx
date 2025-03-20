@@ -6,10 +6,17 @@ import { useState, useEffect } from 'react';
 
 const NavbarActions = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   
   useEffect(() => {
     const userData = localStorage.getItem('user');
-    setIsLoggedIn(!!userData);
+    if (userData) {
+      setIsLoggedIn(true);
+      setUser(JSON.parse(userData));
+    } else {
+      setIsLoggedIn(false);
+      setUser(null);
+    }
   }, []);
   
   return (
