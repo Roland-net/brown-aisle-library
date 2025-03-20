@@ -22,6 +22,7 @@ import * as z from 'zod';
 const supplierOrderSchema = z.object({
   subject: z.string().min(1, 'Требуется указать тему'),
   bookList: z.string().min(1, 'Пожалуйста, укажите список книг для заказа'),
+  emailFrom: z.string().email('Требуется указать корректный email').optional(),
 });
 
 type SupplierOrderValues = z.infer<typeof supplierOrderSchema>;
@@ -29,12 +30,14 @@ type SupplierOrderValues = z.infer<typeof supplierOrderSchema>;
 const Admin = () => {
   const { books, setBooks, loading } = useAdminAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [webhookUrl, setWebhookUrl] = useState('');
   
   const form = useForm<SupplierOrderValues>({
     resolver: zodResolver(supplierOrderSchema),
     defaultValues: {
       subject: 'Заказ книг для магазина',
       bookList: '',
+      emailFrom: '',
     },
   });
 
@@ -42,14 +45,36 @@ const Admin = () => {
     setIsSubmitting(true);
     
     try {
-      // In a real implementation, this would connect to a backend API
-      // Since we don't have a backend, we'll simulate sending an email
-      console.log('Sending email to: rolandmam@mail.ru');
-      console.log('Subject:', values.subject);
-      console.log('Book list:', values.bookList);
+      console.log('Отправка сообщения на: rolandmam@mail.ru');
+      console.log('Тема:', values.subject);
+      console.log('Список книг:', values.bookList);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Check if webhook URL is provided
+      if (!webhookUrl) {
+        toast({
+          title: "Ошибка",
+          description: "Пожалуйста, введите URL для отправки сообщений",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Send email via webhook
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        mode: "no-cors", // Handle CORS issues
+        body: JSON.stringify({
+          to: "rolandmam@mail.ru",
+          subject: values.subject,
+          message: values.bookList,
+          from: values.emailFrom || "bookstore@example.com",
+          timestamp: new Date().toISOString(),
+        }),
+      });
       
       toast({
         title: "Заказ отправлен",
@@ -59,6 +84,7 @@ const Admin = () => {
       form.reset({
         subject: 'Заказ книг для магазина',
         bookList: '',
+        emailFrom: values.emailFrom,
       });
     } catch (error) {
       toast({
@@ -94,6 +120,23 @@ const Admin = () => {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-medium mb-4 text-brown-700">Заказ книг у поставщика</h2>
             
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+              <h3 className="font-medium text-amber-800 mb-2">Настройка отправки сообщений</h3>
+              <p className="text-sm text-amber-700 mb-2">
+                Для настоящей отправки сообщений введите URL сервиса отправки сообщений:
+              </p>
+              <Input 
+                placeholder="Введите URL сервиса для отправки сообщений (например, Zapier Webhook URL)" 
+                value={webhookUrl}
+                onChange={(e) => setWebhookUrl(e.target.value)}
+                className="mb-2"
+              />
+              <p className="text-xs text-amber-600">
+                Вы можете использовать сервисы интеграции, такие как Zapier или Make.com, 
+                чтобы создать рабочий процесс отправки электронных писем.
+              </p>
+            </div>
+            
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
@@ -128,10 +171,28 @@ const Admin = () => {
                   )}
                 />
                 
+                <FormField
+                  control={form.control}
+                  name="emailFrom"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email отправителя (необязательно)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Введите email отправителя" 
+                          type="email" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
                 <Button 
                   type="submit" 
                   className="w-full md:w-auto"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !webhookUrl}
                 >
                   <SendIcon className="mr-2 h-4 w-4" />
                   {isSubmitting ? 'Отправка...' : 'Отправить заказ поставщику'}
