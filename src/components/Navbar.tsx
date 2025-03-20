@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ShoppingCart, User, LogOut, Settings } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, Settings } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -142,10 +141,10 @@ const Navbar = () => {
                   )}
                   <DropdownMenuItem
                     className="cursor-pointer"
-                    onClick={handleLogout}
+                    onClick={() => navigate('/profile')}
                   >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Выйти</span>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Профиль</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -224,15 +223,15 @@ const Navbar = () => {
                     <span>{user.name}</span>
                   </div>
                 </div>
-                <button
-                  onClick={handleLogout}
+                <Link
+                  to="/profile"
                   className="w-full text-left block px-3 py-4 text-base font-medium border-b border-brown-700 text-cream-200/80"
                 >
                   <div className="flex items-center">
-                    <LogOut className="mr-2 h-5 w-5" />
-                    Выйти
+                    <User className="mr-2 h-5 w-5" />
+                    Профиль
                   </div>
-                </button>
+                </Link>
               </>
             ) : (
               <Link

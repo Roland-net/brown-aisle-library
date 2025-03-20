@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -30,16 +29,6 @@ const UserMenu = () => {
       }
     }
   }, []);
-  
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    toast({
-      title: "Выход выполнен",
-      description: "Вы успешно вышли из системы",
-    });
-    navigate('/login');
-    window.location.reload();
-  };
   
   const getInitials = (name: string) => {
     if (!name) return "U";
@@ -100,13 +89,7 @@ const UserMenu = () => {
         
         <div className="my-1 h-px bg-brown-200" />
         
-        <button 
-          onClick={handleLogout}
-          className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm rounded-md hover:bg-brown-100 hover:text-red-600 transition-colors"
-        >
-          <LogOut size={16} />
-          <span>Выйти</span>
-        </button>
+        
       </PopoverContent>
     </Popover>
   );

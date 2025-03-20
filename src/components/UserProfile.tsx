@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { User, Package, Settings, LogOut } from 'lucide-react';
+import { User, Package, LogOut } from 'lucide-react';
 import { 
   Tabs, 
   TabsContent, 
@@ -17,7 +17,7 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { toast } from '@/components/ui/use-toast';
-import { BookType, CartItem } from '@/context/CartContext';
+import { CartItem } from '@/context/CartContext';
 
 interface UserData {
   name: string;
@@ -25,7 +25,7 @@ interface UserData {
   orders?: {
     id: number;
     date: string;
-    items: CartItem[]; // Changed from BookType[] to CartItem[] which includes quantity
+    items: CartItem[]; 
     total: number;
     status: string;
   }[];
