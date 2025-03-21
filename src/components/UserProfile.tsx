@@ -54,21 +54,60 @@ const UserProfile = () => {
         const parsedUser = JSON.parse(storedUserData);
         setUserData(parsedUser);
         
-        // Загружаем историю заказов
+        // Получаем email пользователя
+        const userEmail = parsedUser.email;
+        console.log("User email:", userEmail);
+        
+        // Проверяем заказы в localStorage
+        // Сначала проверяем 'orders'
         const ordersData = localStorage.getItem('orders');
         if (ordersData) {
           try {
             const allOrders = JSON.parse(ordersData);
-            // Фильтруем заказы для текущего пользователя
+            console.log("All orders from 'orders':", allOrders);
+            
+            // Фильтруем заказы по email текущего пользователя
             const userOrders = allOrders.filter(
-              (order: OrderData) => order.userEmail === parsedUser.email
+              (order: OrderData) => order.userEmail === userEmail
             );
+            
             setOrders(userOrders);
-            console.log("Orders loaded:", userOrders);
+            console.log("Filtered orders from 'orders':", userOrders);
           } catch (error) {
-            console.error("Error parsing orders:", error);
-            setOrders([]);
+            console.error("Error parsing 'orders':", error);
           }
+        }
+        
+        // Затем проверяем формат 'userOrders_[email]'
+        const userSpecificOrders = localStorage.getItem(`userOrders_${userEmail}`);
+        if (userSpecificOrders) {
+          try {
+            const parsedUserOrders = JSON.parse(userSpecificOrders);
+            console.log("Orders from 'userOrders_[email]':", parsedUserOrders);
+            
+            // Если нашли заказы в этом формате, используем их
+            if (Array.isArray(parsedUserOrders) && parsedUserOrders.length > 0) {
+              // Преобразуем формат, если необходимо
+              const formattedOrders = parsedUserOrders.map((order: any) => ({
+                id: order.id,
+                date: order.date,
+                items: order.items || [],
+                total: order.totalPrice || 0,
+                status: order.status || "В обработке",
+                userEmail: userEmail
+              }));
+              
+              setOrders(formattedOrders);
+              console.log("Using orders from 'userOrders_[email]':", formattedOrders);
+            }
+          } catch (error) {
+            console.error(`Error parsing userOrders_${userEmail}:`, error);
+          }
+        }
+        
+        // Если нет заказов вообще
+        if (orders.length === 0) {
+          console.log("No orders found for user");
         }
       } catch (error) {
         console.error("Error loading user profile:", error);
@@ -179,7 +218,7 @@ const UserProfile = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        {order.items.map((item) => (
+                        {order.items && order.items.map((item) => (
                           <div key={item.id} className="flex justify-between items-center text-sm">
                             <div className="flex items-center">
                               <span className="font-medium">{item.title}</span>
