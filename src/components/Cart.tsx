@@ -1,15 +1,23 @@
 
-import { Minus, Plus, X, ShoppingBag } from 'lucide-react';
+import { Minus, Plus, X, ShoppingBag, BookOpen } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { motion } from 'framer-motion';
 import CheckoutForm from '@/components/CheckoutForm';
+import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Cart = () => {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
+  const navigate = useNavigate();
   
   const totalPrice = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+
+  const handleBorrowBooks = () => {
+    // Redirect to catalog page, we'll handle the borrowing flow there
+    navigate('/catalog');
+  };
   
   if (cart.length === 0) {
     return (
@@ -90,20 +98,31 @@ const Cart = () => {
             <span className="font-serif font-semibold text-xl">{totalPrice.toLocaleString()} ₽</span>
           </div>
           
-          <div className="flex space-x-4">
-            <button 
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button 
               onClick={clearCart}
-              className="btn-secondary flex-grow-0"
+              variant="outline"
+              className="flex-grow-0"
             >
               Очистить корзину
-            </button>
+            </Button>
             
-            <button 
+            <Button 
+              onClick={handleBorrowBooks} 
+              variant="secondary"
+              className="flex items-center justify-center gap-2"
+            >
+              <BookOpen size={18} />
+              Взять почитать
+            </Button>
+            
+            <Button 
               onClick={() => setShowCheckout(!showCheckout)} 
-              className="btn-primary flex-grow"
+              variant="default"
+              className="flex-grow"
             >
               {showCheckout ? "Вернуться к корзине" : "Оформить заказ"}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

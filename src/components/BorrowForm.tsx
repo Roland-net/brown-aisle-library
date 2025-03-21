@@ -36,7 +36,6 @@ const formSchema = z.object({
     message: "Введите корректный email",
   }),
   pickupType: z.enum(["library", "selfPickup"]),
-  address: z.string().optional(),
   comment: z.string().optional(),
 });
 
@@ -57,7 +56,6 @@ const BorrowForm = ({ book }: BorrowFormProps) => {
       phone: "",
       email: "",
       pickupType: "library",
-      address: "",
       comment: "",
     },
   });
@@ -90,6 +88,7 @@ const BorrowForm = ({ book }: BorrowFormProps) => {
       returnDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
       status: "Оформлено",
       userEmail: parsedUser.email,
+      isBorrow: true,
       userDetails: {
         fullName: data.fullName,
         passportSeries: data.passportSeries,
@@ -99,12 +98,11 @@ const BorrowForm = ({ book }: BorrowFormProps) => {
       },
       pickupDetails: {
         type: data.pickupType,
-        address: data.address,
         comment: data.comment,
       }
     };
     
-    // Store borrow record in localStorage
+    // Store borrow record in localStorage - also add to orders
     const borrowsKey = `userBorrows_${parsedUser.email}`;
     const existingBorrows = localStorage.getItem(borrowsKey);
     let borrows = [];
@@ -115,6 +113,30 @@ const BorrowForm = ({ book }: BorrowFormProps) => {
     
     borrows.push(borrowRecord);
     localStorage.setItem(borrowsKey, JSON.stringify(borrows));
+    
+    // Add to orders as well (for history display)
+    const ordersKey = `userOrders_${parsedUser.email}`;
+    const existingOrders = localStorage.getItem(ordersKey);
+    let orders = [];
+    
+    if (existingOrders) {
+      orders = JSON.parse(existingOrders);
+    }
+    
+    // Format for orders history
+    const orderRecord = {
+      id: borrowRecord.id,
+      date: borrowRecord.date,
+      items: [{ ...book, quantity: 1 }],
+      total: 0, // Borrowed books have no cost
+      status: "Взято в чтение",
+      isBorrow: true,
+      returnDate: borrowRecord.returnDate,
+      userEmail: parsedUser.email
+    };
+    
+    orders.push(orderRecord);
+    localStorage.setItem(ordersKey, JSON.stringify(orders));
     
     // Update stock count
     const storedBooks = localStorage.getItem('books');
@@ -287,22 +309,6 @@ const BorrowForm = ({ book }: BorrowFormProps) => {
                   )}
                 />
               </div>
-              
-              {pickupType === "selfPickup" && (
-                <FormField
-                  control={form.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Адрес для возможной доставки</FormLabel>
-                      <FormControl>
-                        <Input placeholder="ул. Пушкина, д. 10, кв. 5" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
               
               <FormField
                 control={form.control}

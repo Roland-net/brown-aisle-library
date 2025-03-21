@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { User, Package, LogOut } from 'lucide-react';
+import { User, Package, LogOut, BookOpen, ArrowLeft } from 'lucide-react';
 import { 
   Tabs, 
   TabsContent, 
@@ -15,6 +15,7 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { toast } from '@/components/ui/use-toast';
 import { CartItem } from '@/context/CartContext';
 
@@ -30,6 +31,8 @@ interface OrderData {
   total: number;
   status: string;
   userEmail: string;
+  isBorrow?: boolean;
+  returnDate?: string;
 }
 
 const UserProfile = () => {
@@ -46,7 +49,7 @@ const UserProfile = () => {
   
   const [activeTab, setActiveTab] = useState(getInitialTab);
   
-  useEffect(() => {
+  const loadUserData = () => {
     // Загружаем данные пользователя
     const storedUserData = localStorage.getItem('user');
     if (storedUserData) {
@@ -57,6 +60,8 @@ const UserProfile = () => {
         // Получаем email пользователя
         const userEmail = parsedUser.email;
         console.log("User email:", userEmail);
+        
+        let combinedOrders: OrderData[] = [];
         
         // Проверяем заказы в localStorage
         // Сначала проверяем 'orders'
@@ -71,7 +76,7 @@ const UserProfile = () => {
               (order: OrderData) => order.userEmail === userEmail
             );
             
-            setOrders(userOrders);
+            combinedOrders = [...combinedOrders, ...userOrders];
             console.log("Filtered orders from 'orders':", userOrders);
           } catch (error) {
             console.error("Error parsing 'orders':", error);
@@ -92,12 +97,14 @@ const UserProfile = () => {
                 id: order.id,
                 date: order.date,
                 items: order.items || [],
-                total: order.totalPrice || 0,
+                total: order.total || 0,
                 status: order.status || "В обработке",
-                userEmail: userEmail
+                userEmail: userEmail,
+                isBorrow: order.isBorrow || false,
+                returnDate: order.returnDate || null
               }));
               
-              setOrders(formattedOrders);
+              combinedOrders = [...combinedOrders, ...formattedOrders];
               console.log("Using orders from 'userOrders_[email]':", formattedOrders);
             }
           } catch (error) {
@@ -105,9 +112,47 @@ const UserProfile = () => {
           }
         }
         
+        // Дополнительно проверяем взятые книги в 'userBorrows_[email]'
+        const userBorrows = localStorage.getItem(`userBorrows_${userEmail}`);
+        if (userBorrows) {
+          try {
+            const parsedBorrows = JSON.parse(userBorrows);
+            console.log("Borrows from 'userBorrows_[email]':", parsedBorrows);
+            
+            if (Array.isArray(parsedBorrows) && parsedBorrows.length > 0) {
+              // Форматируем записи о взятых книгах для отображения в истории
+              const formattedBorrows = parsedBorrows.map((borrow: any) => ({
+                id: borrow.id,
+                date: borrow.date,
+                items: [{ ...borrow.book, quantity: 1 }],
+                total: 0,
+                status: borrow.status || "Взято в чтение",
+                userEmail: userEmail,
+                isBorrow: true,
+                returnDate: borrow.returnDate || null
+              }));
+              
+              // Добавляем только те, которых еще нет в списке (по id)
+              const borrowIds = new Set(combinedOrders.map(order => order.id));
+              const newBorrows = formattedBorrows.filter(borrow => !borrowIds.has(borrow.id));
+              
+              combinedOrders = [...combinedOrders, ...newBorrows];
+              console.log("Added borrows to orders:", newBorrows);
+            }
+          } catch (error) {
+            console.error(`Error parsing userBorrows_${userEmail}:`, error);
+          }
+        }
+        
+        // Сортируем по дате (новые вверху)
+        combinedOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setOrders(combinedOrders);
+        
         // Если нет заказов вообще
-        if (orders.length === 0) {
+        if (combinedOrders.length === 0) {
           console.log("No orders found for user");
+        } else {
+          console.log("Final combined orders:", combinedOrders.length);
         }
       } catch (error) {
         console.error("Error loading user profile:", error);
@@ -117,6 +162,10 @@ const UserProfile = () => {
       console.log("No user data found, redirecting to login");
       navigate('/login');
     }
+  };
+  
+  useEffect(() => {
+    loadUserData();
   }, [navigate]);
   
   // Обновляем активную вкладку при изменении URL
@@ -132,6 +181,66 @@ const UserProfile = () => {
     });
     navigate('/login');
     window.location.reload();
+  };
+  
+  const handleReturnBook = (orderId: number) => {
+    if (!userData) return;
+    
+    // Находим заказ/бронь в списке
+    const order = orders.find(o => o.id === orderId);
+    if (!order || !order.isBorrow) return;
+    
+    // Получаем email пользователя
+    const userEmail = userData.email;
+    
+    // Обновляем статус в userBorrows
+    const userBorrows = localStorage.getItem(`userBorrows_${userEmail}`);
+    if (userBorrows) {
+      const borrows = JSON.parse(userBorrows);
+      const borrowIndex = borrows.findIndex((b: any) => b.id === orderId);
+      
+      if (borrowIndex !== -1) {
+        borrows[borrowIndex].status = "Возвращено";
+        localStorage.setItem(`userBorrows_${userEmail}`, JSON.stringify(borrows));
+      }
+    }
+    
+    // Обновляем статус в userOrders
+    const userOrders = localStorage.getItem(`userOrders_${userEmail}`);
+    if (userOrders) {
+      const parsedOrders = JSON.parse(userOrders);
+      const orderIndex = parsedOrders.findIndex((o: any) => o.id === orderId);
+      
+      if (orderIndex !== -1) {
+        parsedOrders[orderIndex].status = "Возвращено";
+        localStorage.setItem(`userOrders_${userEmail}`, JSON.stringify(parsedOrders));
+      }
+    }
+    
+    // Обновляем stock книги
+    if (order.items && order.items.length > 0) {
+      const bookId = order.items[0].id;
+      const storedBooks = localStorage.getItem('books');
+      
+      if (storedBooks) {
+        const books = JSON.parse(storedBooks);
+        const bookIndex = books.findIndex((b: any) => b.id === bookId);
+        
+        if (bookIndex !== -1) {
+          books[bookIndex].stock += 1;
+          localStorage.setItem('books', JSON.stringify(books));
+        }
+      }
+    }
+    
+    // Показываем уведомление
+    toast({
+      title: "Книга возвращена",
+      description: "Спасибо! Книга успешно возвращена в библиотеку.",
+    });
+    
+    // Обновляем UI
+    loadUserData();
   };
   
   if (!userData) {
@@ -195,8 +304,8 @@ const UserProfile = () => {
         <TabsContent value="orders">
           <Card>
             <CardHeader>
-              <CardTitle>История заказов</CardTitle>
-              <CardDescription>Просмотр истории ваших заказов.</CardDescription>
+              <CardTitle>История заказов и взятых книг</CardTitle>
+              <CardDescription>Просмотр истории ваших заказов и книг, взятых для чтения.</CardDescription>
             </CardHeader>
             <CardContent>
               {orders && orders.length > 0 ? (
@@ -205,16 +314,45 @@ const UserProfile = () => {
                     <div key={order.id} className="border border-brown-200 rounded-lg p-4">
                       <div className="flex justify-between items-start mb-4">
                         <div>
-                          <p className="font-medium">Заказ #{order.id}</p>
+                          <div className="flex items-center gap-2">
+                            {order.isBorrow ? (
+                              <BookOpen size={16} className="text-blue-600" />
+                            ) : (
+                              <Package size={16} className="text-brown-600" />
+                            )}
+                            <p className="font-medium">
+                              {order.isBorrow ? "Взято в чтение" : "Заказ"} #{order.id}
+                            </p>
+                          </div>
                           <p className="text-sm text-brown-600">{new Date(order.date).toLocaleDateString()}</p>
+                          {order.returnDate && (
+                            <p className="text-sm text-brown-600">
+                              Срок возврата: {new Date(order.returnDate).toLocaleDateString()}
+                            </p>
+                          )}
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          order.status === 'Доставлен' ? 'bg-green-100 text-green-700' :
-                          order.status === 'В обработке' ? 'bg-amber-100 text-amber-700' :
-                          'bg-blue-100 text-blue-700'
-                        }`}>
-                          {order.status}
-                        </span>
+                        <div className="flex flex-col items-end gap-2">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            order.status === 'Доставлен' || order.status === 'Возвращено' ? 'bg-green-100 text-green-700' :
+                            order.status === 'В обработке' ? 'bg-amber-100 text-amber-700' :
+                            order.status === 'Взято в чтение' ? 'bg-blue-100 text-blue-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {order.status}
+                          </span>
+                          
+                          {order.isBorrow && order.status === "Взято в чтение" && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="flex items-center gap-1"
+                              onClick={() => handleReturnBook(order.id)}
+                            >
+                              <ArrowLeft size={14} />
+                              Вернуть
+                            </Button>
+                          )}
+                        </div>
                       </div>
                       
                       <div className="space-y-2">
@@ -224,15 +362,17 @@ const UserProfile = () => {
                               <span className="font-medium">{item.title}</span>
                               <span className="text-brown-600 ml-2">({item.quantity} шт.)</span>
                             </div>
-                            <span>{(item.price * item.quantity).toLocaleString()} ₽</span>
+                            <span>{order.isBorrow ? "Бесплатно" : `${(item.price * item.quantity).toLocaleString()} ₽`}</span>
                           </div>
                         ))}
                       </div>
                       
-                      <div className="mt-4 pt-4 border-t border-brown-200 flex justify-between">
-                        <span className="font-medium">Итого:</span>
-                        <span className="font-medium">{order.total.toLocaleString()} ₽</span>
-                      </div>
+                      {!order.isBorrow && (
+                        <div className="mt-4 pt-4 border-t border-brown-200 flex justify-between">
+                          <span className="font-medium">Итого:</span>
+                          <span className="font-medium">{order.total.toLocaleString()} ₽</span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

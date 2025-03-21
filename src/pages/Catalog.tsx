@@ -13,6 +13,7 @@ const Catalog = () => {
   const [filteredBooks, setFilteredBooks] = useState<BookType[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [books, setBooks] = useState<BookType[]>([]);
+  const [borrowedBooks, setBorrowedBooks] = useState<number[]>([]);
   
   // Load books data
   useEffect(() => {
@@ -35,6 +36,36 @@ const Catalog = () => {
     console.log('Using default books data:', booksData.length);
     setBooks(booksData);
     localStorage.setItem('books', JSON.stringify(booksData));
+  }, []);
+  
+  // Load borrowed books for current user
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (!userData) return;
+    
+    try {
+      const parsedUser = JSON.parse(userData);
+      const userEmail = parsedUser.email;
+      
+      // Get borrowed books from localStorage
+      const userBorrows = localStorage.getItem(`userBorrows_${userEmail}`);
+      if (userBorrows) {
+        const parsedBorrows = JSON.parse(userBorrows);
+        if (Array.isArray(parsedBorrows) && parsedBorrows.length > 0) {
+          // Filter active borrows (not returned)
+          const activeBorrows = parsedBorrows.filter((borrow: any) => 
+            borrow.status === "Оформлено" || borrow.status === "Взято в чтение"
+          );
+          
+          // Extract book IDs
+          const borrowedBookIds = activeBorrows.map((borrow: any) => borrow.book.id);
+          setBorrowedBooks(borrowedBookIds);
+          console.log("Currently borrowed books:", borrowedBookIds);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading borrowed books:", error);
+    }
   }, []);
   
   // Extract unique genres
@@ -117,7 +148,11 @@ const Catalog = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filteredBooks.map((book) => (
-                <BookCard key={book.id} book={book} />
+                <BookCard 
+                  key={book.id} 
+                  book={book} 
+                  isBorrowed={borrowedBooks.includes(book.id)}
+                />
               ))}
             </div>
           )}
