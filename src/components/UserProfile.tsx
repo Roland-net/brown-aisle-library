@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { User, Package, LogOut } from 'lucide-react';
 import { 
@@ -22,17 +21,20 @@ import { CartItem } from '@/context/CartContext';
 interface UserData {
   name: string;
   email: string;
-  orders?: {
-    id: number;
-    date: string;
-    items: CartItem[]; 
-    total: number;
-    status: string;
-  }[];
+}
+
+interface OrderData {
+  id: number;
+  date: string;
+  items: CartItem[]; 
+  total: number;
+  status: string;
+  userEmail: string;
 }
 
 const UserProfile = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [orders, setOrders] = useState<OrderData[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -45,30 +47,29 @@ const UserProfile = () => {
   const [activeTab, setActiveTab] = useState(getInitialTab);
   
   useEffect(() => {
+    // Загружаем данные пользователя
     const storedUserData = localStorage.getItem('user');
     if (storedUserData) {
       try {
         const parsedUser = JSON.parse(storedUserData);
+        setUserData(parsedUser);
         
-        // Получаем или создаем историю заказов
+        // Загружаем историю заказов
         const ordersData = localStorage.getItem('orders');
-        let orders = [];
-        
         if (ordersData) {
           try {
-            orders = JSON.parse(ordersData);
-            console.log("Orders loaded:", orders);
+            const allOrders = JSON.parse(ordersData);
+            // Фильтруем заказы для текущего пользователя
+            const userOrders = allOrders.filter(
+              (order: OrderData) => order.userEmail === parsedUser.email
+            );
+            setOrders(userOrders);
+            console.log("Orders loaded:", userOrders);
           } catch (error) {
             console.error("Error parsing orders:", error);
+            setOrders([]);
           }
         }
-        
-        setUserData({
-          ...parsedUser,
-          orders: orders.filter((order: any) => order.userEmail === parsedUser.email)
-        });
-        
-        console.log("User profile loaded:", parsedUser);
       } catch (error) {
         console.error("Error loading user profile:", error);
         navigate('/login');
@@ -159,9 +160,9 @@ const UserProfile = () => {
               <CardDescription>Просмотр истории ваших заказов.</CardDescription>
             </CardHeader>
             <CardContent>
-              {userData.orders && userData.orders.length > 0 ? (
+              {orders && orders.length > 0 ? (
                 <div className="space-y-6">
-                  {userData.orders.map((order) => (
+                  {orders.map((order) => (
                     <div key={order.id} className="border border-brown-200 rounded-lg p-4">
                       <div className="flex justify-between items-start mb-4">
                         <div>
