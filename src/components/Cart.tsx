@@ -6,17 +6,26 @@ import CheckoutForm from '@/components/CheckoutForm';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import BorrowForm from '@/components/BorrowForm';
 
 const Cart = () => {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showBorrowDialog, setShowBorrowDialog] = useState(false);
+  const [selectedBookForBorrow, setSelectedBookForBorrow] = useState(null);
   const navigate = useNavigate();
   
   const totalPrice = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 
   const handleBorrowBooks = () => {
-    // Redirect to catalog page, we'll handle the borrowing flow there
-    navigate('/catalog');
+    // Show the borrow dialog with all cart items
+    setShowBorrowDialog(true);
   };
   
   if (cart.length === 0) {
@@ -132,6 +141,22 @@ const Cart = () => {
           <CheckoutForm />
         </div>
       )}
+      
+      {/* Borrow Dialog */}
+      <Dialog open={showBorrowDialog} onOpenChange={setShowBorrowDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Оформление книг на чтение</DialogTitle>
+          </DialogHeader>
+          {cart.length > 0 && (
+            <BorrowForm book={cart[0]} onComplete={() => {
+              setShowBorrowDialog(false);
+              clearCart();
+              navigate('/profile');
+            }} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

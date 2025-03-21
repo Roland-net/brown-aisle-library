@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BookType } from '@/context/CartContext';
@@ -15,9 +14,7 @@ const Catalog = () => {
   const [books, setBooks] = useState<BookType[]>([]);
   const [borrowedBooks, setBorrowedBooks] = useState<number[]>([]);
   
-  // Load books data
   useEffect(() => {
-    // Сначала проверяем localStorage
     const storedBooks = localStorage.getItem('books');
     if (storedBooks) {
       try {
@@ -32,13 +29,11 @@ const Catalog = () => {
       }
     }
     
-    // Если в localStorage нет данных или они некорректны, используем данные из booksData
     console.log('Using default books data:', booksData.length);
     setBooks(booksData);
     localStorage.setItem('books', JSON.stringify(booksData));
   }, []);
   
-  // Load borrowed books for current user
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (!userData) return;
@@ -47,17 +42,14 @@ const Catalog = () => {
       const parsedUser = JSON.parse(userData);
       const userEmail = parsedUser.email;
       
-      // Get borrowed books from localStorage
       const userBorrows = localStorage.getItem(`userBorrows_${userEmail}`);
       if (userBorrows) {
         const parsedBorrows = JSON.parse(userBorrows);
         if (Array.isArray(parsedBorrows) && parsedBorrows.length > 0) {
-          // Filter active borrows (not returned)
           const activeBorrows = parsedBorrows.filter((borrow: any) => 
             borrow.status === "Оформлено" || borrow.status === "Взято в чтение"
           );
           
-          // Extract book IDs
           const borrowedBookIds = activeBorrows.map((borrow: any) => borrow.book.id);
           setBorrowedBooks(borrowedBookIds);
           console.log("Currently borrowed books:", borrowedBookIds);
@@ -68,10 +60,8 @@ const Catalog = () => {
     }
   }, []);
   
-  // Extract unique genres
   const genres = Array.from(new Set(books.map(book => book.genre)));
   
-  // Filter books based on selected genre and search term
   useEffect(() => {
     let result = books;
     
@@ -151,7 +141,6 @@ const Catalog = () => {
                 <BookCard 
                   key={book.id} 
                   book={book} 
-                  isBorrowed={borrowedBooks.includes(book.id)}
                 />
               ))}
             </div>

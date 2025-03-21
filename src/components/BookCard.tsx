@@ -1,17 +1,9 @@
 
-import { Plus, Check, ShoppingCart, BookOpen } from 'lucide-react';
+import { Plus, Check, ShoppingCart } from 'lucide-react';
 import { BookType, useCart } from '@/context/CartContext';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from '@/components/ui/use-toast';
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import BorrowForm from './BorrowForm';
 
 interface BookCardProps {
   book: BookType;
@@ -20,7 +12,6 @@ interface BookCardProps {
 const BookCard = ({ book }: BookCardProps) => {
   const { addToCart, cart } = useCart();
   const [isAdding, setIsAdding] = useState(false);
-  const [showBorrowForm, setShowBorrowForm] = useState(false);
   
   const isInCart = cart.some(item => item.id === book.id);
   
@@ -122,36 +113,6 @@ const BookCard = ({ book }: BookCardProps) => {
           ) : (
             <span className="text-red-500">Нет в наличии</span>
           )}
-        </div>
-
-        {/* Buttons for buying or borrowing */}
-        <div className="grid grid-cols-2 gap-2 mt-4">
-          <button
-            onClick={handleAddToCart}
-            disabled={book.stock <= 0}
-            className="flex items-center justify-center gap-1 py-2 px-2 text-sm rounded-md bg-brown-800 text-white hover:bg-brown-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <ShoppingCart size={16} />
-            <span>Купить</span>
-          </button>
-          
-          <Dialog>
-            <DialogTrigger asChild>
-              <button
-                disabled={book.stock <= 0}
-                className="flex items-center justify-center gap-1 py-2 px-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <BookOpen size={16} />
-                <span>Почитать</span>
-              </button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Оформление книги на чтение</DialogTitle>
-              </DialogHeader>
-              <BorrowForm book={book} />
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
     </motion.div>
