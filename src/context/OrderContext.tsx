@@ -13,7 +13,7 @@ export interface Order {
   total: number;
   date: string;
   status: 'pending' | 'completed';
-  userEmail?: string; // Add userEmail field for filtering
+  userEmail: string; // Поле userEmail для фильтрации
 }
 
 interface OrderContextType {
@@ -50,14 +50,50 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     };
 
     setOrders(prevOrders => [...prevOrders, newOrder]);
+    
+    // Проверим, существует ли уже список заказов для этого пользователя
+    const userEmail = orderData.userEmail;
+    const userOrdersKey = `userOrders_${userEmail}`;
+    const existingUserOrders = localStorage.getItem(userOrdersKey);
+    
+    let userOrders = [];
+    if (existingUserOrders) {
+      userOrders = JSON.parse(existingUserOrders);
+    }
+    
+    // Добавим новый заказ в список заказов пользователя
+    userOrders.push(newOrder);
+    localStorage.setItem(userOrdersKey, JSON.stringify(userOrders));
+    
     return newOrder;
   };
 
   const updateOrderStatus = (orderId: string, status: 'pending' | 'completed') => {
     setOrders(prevOrders => 
-      prevOrders.map(order => 
-        order.id === orderId ? { ...order, status } : order
-      )
+      prevOrders.map(order => {
+        if (order.id === orderId) {
+          // Обновляем и основной список, и заказы пользователя
+          const updatedOrder = { ...order, status };
+          
+          // Обновляем в userOrders_[email] если заказ содержит email пользователя
+          if (order.userEmail) {
+            const userOrdersKey = `userOrders_${order.userEmail}`;
+            const userOrders = localStorage.getItem(userOrdersKey);
+            
+            if (userOrders) {
+              const parsedUserOrders = JSON.parse(userOrders);
+              const updatedUserOrders = parsedUserOrders.map((userOrder: Order) => 
+                userOrder.id === orderId ? { ...userOrder, status } : userOrder
+              );
+              
+              localStorage.setItem(userOrdersKey, JSON.stringify(updatedUserOrders));
+            }
+          }
+          
+          return updatedOrder;
+        }
+        return order;
+      })
     );
   };
 

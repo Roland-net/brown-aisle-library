@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useOrders, Order } from '@/context/OrderContext';
 import { 
   Table, 
@@ -18,7 +18,7 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Inbox, Check, ShoppingCart } from 'lucide-react';
+import { Inbox, Check } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -29,10 +29,20 @@ const OrdersTable = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   
-  const pendingOrders = orders.filter(order => order.status === 'pending');
-  const completedOrders = orders.filter(order => order.status === 'completed');
+  // Обновим состояние заказов из localStorage напрямую
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
   
-  if (orders.length === 0) {
+  useEffect(() => {
+    const storedOrders = localStorage.getItem('orders');
+    if (storedOrders) {
+      setAllOrders(JSON.parse(storedOrders));
+    }
+  }, [orders]); // Зависимость от orders для обновления при изменениях
+  
+  const pendingOrders = allOrders.filter(order => order.status === 'pending');
+  const completedOrders = allOrders.filter(order => order.status === 'completed');
+  
+  if (allOrders.length === 0) {
     return (
       <div className="text-center py-8">
         <Inbox className="mx-auto h-12 w-12 text-brown-300" />
@@ -44,6 +54,13 @@ const OrdersTable = () => {
   
   const handleStatusChange = (orderId: string, status: 'pending' | 'completed') => {
     updateOrderStatus(orderId, status);
+    
+    // Обновим локальное состояние заказов
+    setAllOrders(prevOrders => 
+      prevOrders.map(order => 
+        order.id === orderId ? { ...order, status } : order
+      )
+    );
     
     toast({
       title: "Статус заказа обновлен",

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BookType } from '@/context/CartContext';
@@ -14,6 +15,7 @@ const Catalog = () => {
   const [books, setBooks] = useState<BookType[]>([]);
   const [borrowedBooks, setBorrowedBooks] = useState<number[]>([]);
   
+  // Загрузка книг при инициализации
   useEffect(() => {
     const storedBooks = localStorage.getItem('books');
     if (storedBooks) {
@@ -29,11 +31,13 @@ const Catalog = () => {
       }
     }
     
+    // Если в localStorage нет книг или произошла ошибка, загружаем стандартные данные
     console.log('Using default books data:', booksData.length);
     setBooks(booksData);
     localStorage.setItem('books', JSON.stringify(booksData));
   }, []);
   
+  // Получаем информацию о книгах, взятых пользователем
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (!userData) return;
@@ -60,8 +64,10 @@ const Catalog = () => {
     }
   }, []);
   
+  // Получаем список жанров из данных книг
   const genres = Array.from(new Set(books.map(book => book.genre)));
   
+  // Фильтруем книги при изменении фильтров или данных
   useEffect(() => {
     let result = books;
     

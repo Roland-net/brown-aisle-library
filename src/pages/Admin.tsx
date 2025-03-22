@@ -1,13 +1,33 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import BookStockTable from '@/components/admin/BookStockTable';
 import OrdersTable from '@/components/admin/OrdersTable';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Admin = () => {
   const { books, setBooks, loading } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState("stock");
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Инициализируем стартовую вкладку на основе URL параметра
+  const getInitialTab = () => {
+    const params = new URLSearchParams(location.search);
+    return params.get('tab') || "stock";
+  };
+  
+  const [activeTab, setActiveTab] = useState(getInitialTab);
+  
+  // Синхронизируем параметры URL с активной вкладкой
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get('tab');
+    
+    if (tabParam !== activeTab) {
+      navigate(`/admin?tab=${activeTab}`, { replace: true });
+    }
+  }, [activeTab, location.search, navigate]);
   
   if (loading) {
     return (
@@ -22,7 +42,7 @@ const Admin = () => {
       <div className="container mx-auto px-6">
         <h1 className="text-3xl font-serif mb-8 text-brown-800">Администрирование</h1>
         
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
             <TabsTrigger value="stock">Управление запасами</TabsTrigger>
             <TabsTrigger value="orders">Заказы</TabsTrigger>
