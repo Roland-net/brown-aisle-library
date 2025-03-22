@@ -26,7 +26,7 @@ export const booksData: BookType[] = [
     author: "Джордж Оруэлл",
     price: 580,
     genre: "Антиутопия",
-    image: "https://cdn.eksmo.ru/v2/ITD000000001060262/COVER/cover1.jpg",
+    image: "https://s1.livelib.ru/boocover/1000299297/o/cad6/Dzhordzh_Oruell__1984.jpeg",
     stock: 5
   },
   {
@@ -35,7 +35,7 @@ export const booksData: BookType[] = [
     author: "Дж. К. Роулинг",
     price: 850,
     genre: "Фэнтези",
-    image: "https://www.chitai-gorod.ru/upload/iblock/17e/17e8dc7740a9bfd3388a91f8e9e8e96d.jpg",
+    image: "https://s1.livelib.ru/boocover/1000330229/o/da50/Dzhoan_Ketlin_Rouling__Garri_Potter_i_filosofskij_kamen.jpeg",
     stock: 15
   },
   {
@@ -53,7 +53,7 @@ export const booksData: BookType[] = [
     author: "Лев Толстой",
     price: 950,
     genre: "Классическая литература",
-    image: "https://cdn.eksmo.ru/v2/ITD000000000861746/COVER/cover1.jpg",
+    image: "https://s1.livelib.ru/boocover/1000167605/o/b0d9/Lev_Tolstoj__Vojna_i_mir.jpeg",
     stock: 3
   },
   {
@@ -89,7 +89,7 @@ export const booksData: BookType[] = [
     author: "Артур Конан Дойл",
     price: 760,
     genre: "Детектив",
-    image: "https://cdn.ast.ru/v2/ASE000000000852342/COVER/cover1.jpg",
+    image: "https://s1.livelib.ru/boocover/1000506616/o/dea3/Artur_Konan_Dojl__Zapiski_o_Sherloke_Holmse.jpeg",
     stock: 4
   },
   {

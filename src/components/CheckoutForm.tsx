@@ -1,239 +1,275 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { LoaderCircle } from "lucide-react";
 import { useCart } from '@/context/CartContext';
 import { toast } from '@/components/ui/use-toast';
-import { Input } from '@/components/ui/input';
-import { 
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '@/components/ui/form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { MapPin, Phone, CreditCard } from 'lucide-react';
+import { useOrders } from '@/context/OrderContext';
 
 const formSchema = z.object({
-  fullName: z.string().min(3, {
-    message: "Имя должно содержать минимум 3 символа",
-  }),
-  address: z.string().min(5, {
-    message: "Адрес должен содержать минимум 5 символов",
-  }),
-  city: z.string().min(2, {
-    message: "Укажите город",
-  }),
-  phone: z.string().min(10, {
-    message: "Номер телефона должен содержать минимум 10 цифр",
-  }),
-  email: z.string().email({
-    message: "Введите корректный email",
+  name: z.string().min(2, { message: "Имя должно содержать минимум 2 символа" }),
+  email: z.string().email({ message: "Введите корректный email" }),
+  phone: z.string().min(10, { message: "Телефон должен содержать минимум 10 цифр" }),
+  delivery: z.enum(["самовывоз", "доставка"]),
+  address: z.string().optional(),
+  paymentMethod: z.enum(["card", "cash"]),
+  agreement: z.literal(true, {
+    errorMap: () => ({ message: "Вы должны согласиться с условиями" }),
   }),
 });
 
-export type CheckoutFormData = z.infer<typeof formSchema>;
+type FormValues = z.infer<typeof formSchema>;
 
 const CheckoutForm = () => {
-  const { cart, clearCart } = useCart();
-  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { cart, clearCart } = useCart();
+  const { addOrder } = useOrders();
+  const navigate = useNavigate();
   
-  const form = useForm<z.infer<typeof formSchema>>({
+  const totalPrice = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullName: "",
-      address: "",
-      city: "",
-      phone: "",
+      name: "",
       email: "",
+      phone: "",
+      delivery: "самовывоз",
+      address: "",
+      paymentMethod: "card",
+      agreement: false,
     },
   });
-
-  const totalPrice = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
   
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    setIsSubmitting(true);
-    
-    // Get existing user data
-    const userData = localStorage.getItem('user');
-    if (!userData) {
+  const deliveryMethod = form.watch("delivery");
+
+  const onSubmit = (values: FormValues) => {
+    if (cart.length === 0) {
       toast({
         title: "Ошибка",
-        description: "Необходимо войти в систему перед оформлением заказа",
+        description: "Ваша корзина пуста",
         variant: "destructive",
       });
-      navigate('/login');
       return;
     }
     
-    // Parse user data and add order
-    const parsedUser = JSON.parse(userData);
+    setIsSubmitting(true);
     
-    // Create order object
-    const order = {
-      id: Date.now(),
-      date: new Date().toISOString(),
-      items: cart,
-      totalPrice,
-      status: "В обработке",
-      shippingAddress: {
-        fullName: data.fullName,
-        address: data.address,
-        city: data.city,
-        phone: data.phone,
-        email: data.email,
-      }
-    };
-    
-    // Update user orders in localStorage
-    const existingOrders = localStorage.getItem('userOrders_' + parsedUser.email);
-    let orders = [];
-    
-    if (existingOrders) {
-      orders = JSON.parse(existingOrders);
-    }
-    
-    orders.push(order);
-    localStorage.setItem('userOrders_' + parsedUser.email, JSON.stringify(orders));
-    
-    // Update stock count for each book
-    const storedBooks = localStorage.getItem('books');
-    if (storedBooks) {
-      const books = JSON.parse(storedBooks);
-      
-      // Reduce stock count for each purchased book
-      cart.forEach(item => {
-        const bookIndex = books.findIndex((book: any) => book.id === item.id);
-        if (bookIndex !== -1) {
-          books[bookIndex].stock -= item.quantity;
-        }
+    // Simulate API call
+    setTimeout(() => {
+      // Создаем заказ
+      const newOrder = addOrder({
+        items: cart,
+        customer: {
+          name: values.name,
+          phone: values.phone,
+          email: values.email
+        },
+        total: totalPrice
       });
       
-      localStorage.setItem('books', JSON.stringify(books));
-    }
-    
-    // Clear cart and show success message
-    clearCart();
-    
-    toast({
-      title: "Заказ оформлен",
-      description: "Ваш заказ успешно оформлен и будет обработан в ближайшее время",
-    });
-    
-    setIsSubmitting(false);
-    navigate('/profile');
+      // Очищаем корзину
+      clearCart();
+      
+      // Показываем уведомление
+      toast({
+        title: "Заказ успешно оформлен",
+        description: `Номер вашего заказа: ${newOrder.id}`,
+      });
+      
+      // Редирект на главную
+      navigate('/', { replace: true });
+      
+      setIsSubmitting(false);
+    }, 1500);
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-      <h2 className="text-2xl font-serif mb-6">Оформление заказа</h2>
-      
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="fullName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ФИО</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Иванов Иван Иванович" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="example@mail.ru" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    <div className="flex items-center gap-2">
-                      <Phone size={16} />
-                      <span>Телефон</span>
-                    </div>
-                  </FormLabel>
-                  <FormControl>
-                    <Input type="tel" placeholder="+7 (999) 123-45-67" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Город</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Москва" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <h3 className="text-xl font-serif mb-4">Информация о покупателе</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Имя</FormLabel>
+                <FormControl>
+                  <Input placeholder="Иван Иванов" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Телефон</FormLabel>
+                <FormControl>
+                  <Input placeholder="+7 (900) 123-45-67" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="md:col-span-2">
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="example@mail.ru" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <div className="border-t border-brown-200 pt-6">
+          <h3 className="text-xl font-serif mb-4">Способ получения</h3>
+          
+          <FormField
+            control={form.control}
+            name="delivery"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="самовывоз" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Самовывоз из магазина
+                      </FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="доставка" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Доставка курьером
+                      </FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          {deliveryMethod === "доставка" && (
             <FormField
               control={form.control}
               name="address"
               render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>
-                    <div className="flex items-center gap-2">
-                      <MapPin size={16} />
-                      <span>Адрес доставки</span>
-                    </div>
-                  </FormLabel>
+                <FormItem className="mt-4">
+                  <FormLabel>Адрес доставки</FormLabel>
                   <FormControl>
-                    <Input placeholder="ул. Пушкина, д. 10, кв. 5" {...field} />
+                    <Input placeholder="Город, улица, дом, квартира" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
+          )}
+        </div>
+        
+        <div className="border-t border-brown-200 pt-6">
+          <h3 className="text-xl font-serif mb-4">Способ оплаты</h3>
           
-          <div className="pt-6 border-t border-brown-200">
-            <div className="flex justify-between items-center mb-4">
-              <span className="font-medium text-lg">Итого к оплате:</span>
-              <span className="font-serif font-semibold text-xl">{totalPrice.toLocaleString()} ₽</span>
-            </div>
-            
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="w-full btn-primary flex items-center justify-center gap-2"
-            >
-              <CreditCard size={18} />
-              {isSubmitting ? "Обработка..." : "Оформить заказ"}
-            </button>
-          </div>
-        </form>
-      </Form>
-    </div>
+          <FormField
+            control={form.control}
+            name="paymentMethod"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="card" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Банковской картой онлайн
+                      </FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="cash" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Наличными при получении
+                      </FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <FormField
+          control={form.control}
+          name="agreement"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  Я согласен с условиями обработки персональных данных
+                </FormLabel>
+                <FormMessage />
+              </div>
+            </FormItem>
+          )}
+        />
+        
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+              Оформление заказа...
+            </>
+          ) : (
+            "Оформить заказ"
+          )}
+        </Button>
+      </form>
+    </Form>
   );
 };
 

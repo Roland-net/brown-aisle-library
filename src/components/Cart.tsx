@@ -18,7 +18,6 @@ const Cart = () => {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
   const [showBorrowDialog, setShowBorrowDialog] = useState(false);
-  const [selectedBookForBorrow, setSelectedBookForBorrow] = useState(null);
   const navigate = useNavigate();
   
   const totalPrice = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -149,11 +148,14 @@ const Cart = () => {
             <DialogTitle>Оформление книг на чтение</DialogTitle>
           </DialogHeader>
           {cart.length > 0 && (
-            <BorrowForm book={cart[0]} onComplete={() => {
-              setShowBorrowDialog(false);
-              clearCart();
-              navigate('/profile');
-            }} />
+            <BorrowForm 
+              book={cart[0]} 
+              onComplete={() => {
+                setShowBorrowDialog(false);
+                clearCart();
+                navigate('/profile');
+              }} 
+            />
           )}
         </DialogContent>
       </Dialog>

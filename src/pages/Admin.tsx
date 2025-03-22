@@ -1,9 +1,13 @@
 
+import { useState } from 'react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import BookStockTable from '@/components/admin/BookStockTable';
+import OrdersTable from '@/components/admin/OrdersTable';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Admin = () => {
   const { books, setBooks, loading } = useAdminAuth();
+  const [activeTab, setActiveTab] = useState("orders");
   
   if (loading) {
     return (
@@ -18,10 +22,26 @@ const Admin = () => {
       <div className="container mx-auto px-6">
         <h1 className="text-3xl font-serif mb-8 text-brown-800">Администрирование</h1>
         
-        <div className="bg-white rounded-lg shadow-md p-6 overflow-hidden">
-          <h2 className="text-xl font-medium mb-4 text-brown-700">Управление запасами книг</h2>
-          <BookStockTable books={books} setBooks={setBooks} />
-        </div>
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-6">
+            <TabsTrigger value="orders">Заказы</TabsTrigger>
+            <TabsTrigger value="stock">Управление запасами</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="orders" className="space-y-6">
+            <div className="bg-white rounded-lg shadow-md p-6 overflow-hidden">
+              <h2 className="text-xl font-medium mb-6 text-brown-700">Управление заказами</h2>
+              <OrdersTable />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="stock" className="space-y-6">
+            <div className="bg-white rounded-lg shadow-md p-6 overflow-hidden">
+              <h2 className="text-xl font-medium mb-4 text-brown-700">Управление запасами книг</h2>
+              <BookStockTable books={books} setBooks={setBooks} />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
