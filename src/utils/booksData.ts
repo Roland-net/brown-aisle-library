@@ -26,7 +26,7 @@ export const booksData: BookType[] = [
     author: "Джордж Оруэлл",
     price: 580,
     genre: "Антиутопия",
-    image: "https://img3.labirint.ru/rc/f2ec7b7d60d63d68af038a6ba8a6c58a/363x561q80/books57/569903/cover.jpg",
+    image: "https://cdn.eksmo.ru/v2/ITD000000001060262/COVER/cover1.jpg",
     stock: 5
   },
   {
@@ -35,7 +35,7 @@ export const booksData: BookType[] = [
     author: "Дж. К. Роулинг",
     price: 850,
     genre: "Фэнтези",
-    image: "https://img4.labirint.ru/rc/afda891a1b4f0b14d2adb4f418e9be67/363x561q80/books60/594844/cover.jpg",
+    image: "https://www.chitai-gorod.ru/upload/iblock/17e/17e8dc7740a9bfd3388a91f8e9e8e96d.jpg",
     stock: 15
   },
   {
@@ -53,7 +53,7 @@ export const booksData: BookType[] = [
     author: "Лев Толстой",
     price: 950,
     genre: "Классическая литература",
-    image: "https://img4.labirint.ru/rc/e80ad4622ae4c8e97f7d4d5f79f8f7f7/363x561q80/books55/541936/cover.jpg",
+    image: "https://cdn.eksmo.ru/v2/ITD000000000861746/COVER/cover1.jpg",
     stock: 3
   },
   {
@@ -89,7 +89,7 @@ export const booksData: BookType[] = [
     author: "Артур Конан Дойл",
     price: 760,
     genre: "Детектив",
-    image: "https://img3.labirint.ru/rc/7ef7c9b2f3d9b84f16999c1e22147c0e/363x561q80/books81/807498/cover.jpg",
+    image: "https://cdn.ast.ru/v2/ASE000000000852342/COVER/cover1.jpg",
     stock: 4
   },
   {
