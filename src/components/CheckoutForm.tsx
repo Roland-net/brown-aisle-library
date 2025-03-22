@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,11 +26,30 @@ type FormValues = z.infer<typeof formSchema>;
 
 const CheckoutForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loggedInUserEmail, setLoggedInUserEmail] = useState<string | null>(null);
   const { cart, clearCart } = useCart();
   const { addOrder } = useOrders();
   const navigate = useNavigate();
   
   const totalPrice = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+
+  // Load user data from localStorage if available
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        if (user && user.email) {
+          setLoggedInUserEmail(user.email);
+          // Pre-fill form with user data if logged in
+          form.setValue('name', user.name || '');
+          form.setValue('email', user.email || '');
+        }
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -54,34 +73,46 @@ const CheckoutForm = () => {
     
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      // Создаем заказ
-      const newOrder = addOrder({
-        items: cart,
-        customer: {
-          name: values.name,
-          phone: values.phone,
-          email: values.email
-        },
-        total: totalPrice,
-        userEmail: values.email // Add userEmail to the order for filtering
-      });
-      
-      // Очищаем корзину
-      clearCart();
-      
-      // Показываем уведомление
+    // Get the user email for order tracking - either from form or logged in user
+    const userEmail = values.email || loggedInUserEmail;
+    
+    if (!userEmail) {
       toast({
-        title: "Заказ успешно оформлен",
-        description: `Номер вашего заказа: ${newOrder.id}`,
+        title: "Ошибка",
+        description: "Email не указан",
+        variant: "destructive",
       });
-      
-      // Редирект на главную
-      navigate('/', { replace: true });
-      
       setIsSubmitting(false);
-    }, 1500);
+      return;
+    }
+    
+    // Create order
+    const newOrder = addOrder({
+      items: cart,
+      customer: {
+        name: values.name,
+        phone: values.phone,
+        email: values.email
+      },
+      total: totalPrice,
+      userEmail: userEmail // Add userEmail to the order for filtering
+    });
+    
+    console.log("New order created:", newOrder);
+    
+    // Clear cart
+    clearCart();
+    
+    // Show notification
+    toast({
+      title: "Заказ успешно оформлен",
+      description: `Номер вашего заказа: ${newOrder.id}`,
+    });
+    
+    // Redirect to profile page to see the order
+    navigate('/profile?tab=orders', { replace: true });
+    
+    setIsSubmitting(false);
   };
 
   return (

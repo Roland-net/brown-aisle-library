@@ -25,7 +25,7 @@ interface UserData {
 }
 
 interface OrderData {
-  id: number;
+  id: string | number;
   date: string;
   items: CartItem[]; 
   total: number;
@@ -41,7 +41,7 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Определяем начальную вкладку на основе URL параметра
+  // Determine initial tab based on URL parameter
   const getInitialTab = () => {
     const params = new URLSearchParams(location.search);
     return params.get('tab') === 'orders' ? 'orders' : 'profile';
@@ -49,70 +49,70 @@ const UserProfile = () => {
   
   const [activeTab, setActiveTab] = useState(getInitialTab);
   
+  // Update URL when tab changes
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const currentTab = params.get('tab');
+    
+    if (currentTab !== activeTab && activeTab) {
+      navigate(`/profile?tab=${activeTab}`, { replace: true });
+    }
+  }, [activeTab, location.search, navigate]);
+
   const loadUserData = () => {
-    // Загружаем данные пользователя
+    // Load user data
     const storedUserData = localStorage.getItem('user');
     if (storedUserData) {
       try {
         const parsedUser = JSON.parse(storedUserData);
         setUserData(parsedUser);
         
-        // Получаем email пользователя
+        // Get user email
         const userEmail = parsedUser.email;
         console.log("User email:", userEmail);
         
         let combinedOrders: OrderData[] = [];
         
-        // Проверяем заказы в localStorage
-        // Сначала проверяем 'orders'
-        const ordersData = localStorage.getItem('orders');
-        if (ordersData) {
-          try {
-            const allOrders = JSON.parse(ordersData);
-            console.log("All orders from 'orders':", allOrders);
-            
-            // Фильтруем заказы по email текущего пользователя
-            const userOrders = allOrders.filter(
-              (order: OrderData) => order.userEmail === userEmail
-            );
-            
-            combinedOrders = [...combinedOrders, ...userOrders];
-            console.log("Filtered orders from 'orders':", userOrders);
-          } catch (error) {
-            console.error("Error parsing 'orders':", error);
-          }
-        }
-        
-        // Затем проверяем формат 'userOrders_[email]'
+        // First check user-specific orders in 'userOrders_[email]' format
         const userSpecificOrders = localStorage.getItem(`userOrders_${userEmail}`);
         if (userSpecificOrders) {
           try {
             const parsedUserOrders = JSON.parse(userSpecificOrders);
             console.log("Orders from 'userOrders_[email]':", parsedUserOrders);
             
-            // Если нашли заказы в этом формате, используем их
             if (Array.isArray(parsedUserOrders) && parsedUserOrders.length > 0) {
-              // Преобразуем формат, если необходимо
-              const formattedOrders = parsedUserOrders.map((order: any) => ({
-                id: order.id,
-                date: order.date,
-                items: order.items || [],
-                total: order.total || 0,
-                status: order.status || "В обработке",
-                userEmail: userEmail,
-                isBorrow: order.isBorrow || false,
-                returnDate: order.returnDate || null
-              }));
-              
-              combinedOrders = [...combinedOrders, ...formattedOrders];
-              console.log("Using orders from 'userOrders_[email]':", formattedOrders);
+              combinedOrders = [...combinedOrders, ...parsedUserOrders];
+              console.log("Added user-specific orders:", parsedUserOrders.length);
             }
           } catch (error) {
             console.error(`Error parsing userOrders_${userEmail}:`, error);
           }
         }
         
-        // Дополнительно проверяем взятые книги в 'userBorrows_[email]'
+        // Then check general orders in 'orders'
+        const ordersData = localStorage.getItem('orders');
+        if (ordersData) {
+          try {
+            const allOrders = JSON.parse(ordersData);
+            console.log("All orders from 'orders':", allOrders);
+            
+            // Filter by current user's email
+            const userOrders = allOrders.filter(
+              (order: OrderData) => order.userEmail === userEmail
+            );
+            
+            // Add orders that aren't already in combinedOrders (check by id)
+            const existingIds = new Set(combinedOrders.map(order => order.id));
+            const newOrders = userOrders.filter(order => !existingIds.has(order.id));
+            
+            combinedOrders = [...combinedOrders, ...newOrders];
+            console.log("Added filtered orders from 'orders':", newOrders.length);
+          } catch (error) {
+            console.error("Error parsing 'orders':", error);
+          }
+        }
+        
+        // Check for borrowed books in 'userBorrows_[email]'
         const userBorrows = localStorage.getItem(`userBorrows_${userEmail}`);
         if (userBorrows) {
           try {
@@ -120,7 +120,7 @@ const UserProfile = () => {
             console.log("Borrows from 'userBorrows_[email]':", parsedBorrows);
             
             if (Array.isArray(parsedBorrows) && parsedBorrows.length > 0) {
-              // Форматируем записи о взятых книгах для отображения в истории
+              // Format borrow records as order-like entries
               const formattedBorrows = parsedBorrows.map((borrow: any) => ({
                 id: borrow.id,
                 date: borrow.date,
@@ -132,28 +132,23 @@ const UserProfile = () => {
                 returnDate: borrow.returnDate || null
               }));
               
-              // Добавляем только те, которых еще нет в списке (по id)
-              const borrowIds = new Set(combinedOrders.map(order => order.id));
-              const newBorrows = formattedBorrows.filter(borrow => !borrowIds.has(borrow.id));
+              // Add borrows that aren't already in combinedOrders
+              const existingIds = new Set(combinedOrders.map(order => order.id));
+              const newBorrows = formattedBorrows.filter(borrow => !existingIds.has(borrow.id));
               
               combinedOrders = [...combinedOrders, ...newBorrows];
-              console.log("Added borrows to orders:", newBorrows);
+              console.log("Added borrows to orders:", newBorrows.length);
             }
           } catch (error) {
             console.error(`Error parsing userBorrows_${userEmail}:`, error);
           }
         }
         
-        // Сортируем по дате (новые вверху)
+        // Sort by date (newest first)
         combinedOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setOrders(combinedOrders);
         
-        // Если нет заказов вообще
-        if (combinedOrders.length === 0) {
-          console.log("No orders found for user");
-        } else {
-          console.log("Final combined orders:", combinedOrders.length);
-        }
+        console.log("Final combined orders:", combinedOrders.length);
       } catch (error) {
         console.error("Error loading user profile:", error);
         navigate('/login');
@@ -168,7 +163,7 @@ const UserProfile = () => {
     loadUserData();
   }, [navigate]);
   
-  // Обновляем активную вкладку при изменении URL
+  // Update active tab when URL changes
   useEffect(() => {
     setActiveTab(getInitialTab());
   }, [location.search]);
@@ -183,17 +178,17 @@ const UserProfile = () => {
     window.location.reload();
   };
   
-  const handleReturnBook = (orderId: number) => {
+  const handleReturnBook = (orderId: string | number) => {
     if (!userData) return;
     
-    // Находим заказ/бронь в списке
+    // Find the borrow/order in the list
     const order = orders.find(o => o.id === orderId);
     if (!order || !order.isBorrow) return;
     
-    // Получаем email пользователя
+    // Get user email
     const userEmail = userData.email;
     
-    // Обновляем статус в userBorrows
+    // Update status in userBorrows
     const userBorrows = localStorage.getItem(`userBorrows_${userEmail}`);
     if (userBorrows) {
       const borrows = JSON.parse(userBorrows);
@@ -205,7 +200,7 @@ const UserProfile = () => {
       }
     }
     
-    // Обновляем статус в userOrders
+    // Update status in userOrders
     const userOrders = localStorage.getItem(`userOrders_${userEmail}`);
     if (userOrders) {
       const parsedOrders = JSON.parse(userOrders);
@@ -217,7 +212,7 @@ const UserProfile = () => {
       }
     }
     
-    // Обновляем stock книги
+    // Update book stock
     if (order.items && order.items.length > 0) {
       const bookId = order.items[0].id;
       const storedBooks = localStorage.getItem('books');
@@ -233,13 +228,13 @@ const UserProfile = () => {
       }
     }
     
-    // Показываем уведомление
+    // Show notification
     toast({
       title: "Книга возвращена",
       description: "Спасибо! Книга успешно возвращена в библиотеку.",
     });
     
-    // Обновляем UI
+    // Update UI
     loadUserData();
   };
   
@@ -333,12 +328,14 @@ const UserProfile = () => {
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            order.status === 'Доставлен' || order.status === 'Возвращено' ? 'bg-green-100 text-green-700' :
-                            order.status === 'В обработке' ? 'bg-amber-100 text-amber-700' :
+                            order.status === 'completed' || order.status === 'Доставлен' || order.status === 'Возвращено' ? 'bg-green-100 text-green-700' :
+                            order.status === 'pending' || order.status === 'В обработке' ? 'bg-amber-100 text-amber-700' :
                             order.status === 'Взято в чтение' ? 'bg-blue-100 text-blue-700' :
                             'bg-gray-100 text-gray-700'
                           }`}>
-                            {order.status}
+                            {order.status === 'pending' ? 'В обработке' : 
+                             order.status === 'completed' ? 'Доставлен' : 
+                             order.status}
                           </span>
                           
                           {order.isBorrow && order.status === "Взято в чтение" && (

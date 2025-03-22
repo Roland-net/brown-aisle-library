@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useNavigate } from 'react-router-dom';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,26 @@ export interface BorrowFormProps {
 
 const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loggedInUserEmail, setLoggedInUserEmail] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  // Load user data from localStorage if available
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        if (user && user.email) {
+          setLoggedInUserEmail(user.email);
+          // Pre-fill form with user data if logged in
+          form.setValue('name', user.name || '');
+          form.setValue('email', user.email || '');
+        }
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -42,38 +64,120 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
   const onSubmit = (values: FormValues) => {
     setIsSubmitting(true);
     
-    // Симуляция API вызова
-    setTimeout(() => {
-      // Сохраняем заимствованные книги в localStorage
-      const borrowedBooks = JSON.parse(localStorage.getItem('borrowedBooks') || '[]');
-      
-      if (book && book.id) {
-        const borrowedBook = {
-          id: book.id,
-          title: book.title,
-          borrowDate: new Date().toISOString(),
-          returnDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 дней
-          customer: {
-            name: values.name,
-            email: values.email,
-            phone: values.phone
-          }
-        };
-        
-        localStorage.setItem('borrowedBooks', JSON.stringify([...borrowedBooks, borrowedBook]));
-      }
-      
+    // Get the user email for borrow tracking
+    const userEmail = values.email || loggedInUserEmail;
+    
+    if (!userEmail) {
       toast({
-        title: "Книга успешно оформлена",
-        description: "Книга будет доступна в течение 14 дней",
+        title: "Ошибка",
+        description: "Email не указан",
+        variant: "destructive",
       });
-      
       setIsSubmitting(false);
-      
-      if (onComplete) {
-        onComplete();
+      return;
+    }
+    
+    // Calculate return date (14 days from now)
+    const returnDate = new Date();
+    returnDate.setDate(returnDate.getDate() + 14);
+    
+    // Create borrow record
+    const borrowId = Date.now().toString();
+    const borrowRecord = {
+      id: borrowId,
+      date: new Date().toISOString(),
+      book: book,
+      returnDate: returnDate.toISOString(),
+      status: "Взято в чтение",
+      customer: {
+        name: values.name,
+        email: userEmail,
+        phone: values.phone
       }
-    }, 1500);
+    };
+    
+    // Save to userBorrows_[email]
+    const userBorrowsKey = `userBorrows_${userEmail}`;
+    const existingBorrows = localStorage.getItem(userBorrowsKey);
+    
+    let userBorrows = [];
+    if (existingBorrows) {
+      try {
+        userBorrows = JSON.parse(existingBorrows);
+      } catch (error) {
+        console.error("Error parsing user borrows:", error);
+      }
+    }
+    
+    userBorrows.push(borrowRecord);
+    localStorage.setItem(userBorrowsKey, JSON.stringify(userBorrows));
+    
+    // Also save to userOrders_[email] for unified history display
+    const userOrdersKey = `userOrders_${userEmail}`;
+    const existingOrders = localStorage.getItem(userOrdersKey);
+    
+    let userOrders = [];
+    if (existingOrders) {
+      try {
+        userOrders = JSON.parse(existingOrders);
+      } catch (error) {
+        console.error("Error parsing user orders:", error);
+      }
+    }
+    
+    // Add as an order-like entry with isBorrow flag
+    const orderRecord = {
+      id: borrowId,
+      date: new Date().toISOString(),
+      items: [{ ...book, quantity: 1 }],
+      total: 0,
+      status: "Взято в чтение",
+      isBorrow: true,
+      returnDate: returnDate.toISOString(),
+      userEmail: userEmail,
+      customer: {
+        name: values.name,
+        email: userEmail,
+        phone: values.phone
+      }
+    };
+    
+    userOrders.push(orderRecord);
+    localStorage.setItem(userOrdersKey, JSON.stringify(userOrders));
+    
+    console.log("New borrow record created:", borrowRecord);
+    console.log("Added to user orders as:", orderRecord);
+    
+    // Update book stock in localStorage
+    const storedBooks = localStorage.getItem('books');
+    if (storedBooks) {
+      try {
+        const books = JSON.parse(storedBooks);
+        const updatedBooks = books.map((b: any) => {
+          if (b.id === book.id) {
+            return { ...b, stock: Math.max(0, b.stock - 1) };
+          }
+          return b;
+        });
+        localStorage.setItem('books', JSON.stringify(updatedBooks));
+      } catch (error) {
+        console.error("Error updating book stock:", error);
+      }
+    }
+    
+    toast({
+      title: "Книга успешно оформлена",
+      description: "Книга будет доступна в течение 14 дней",
+    });
+    
+    setIsSubmitting(false);
+    
+    // Navigate to profile with orders tab selected
+    navigate('/profile?tab=orders');
+    
+    if (onComplete) {
+      onComplete();
+    }
   };
 
   return (

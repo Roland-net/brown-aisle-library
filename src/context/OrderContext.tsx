@@ -13,7 +13,7 @@ export interface Order {
   total: number;
   date: string;
   status: 'pending' | 'completed';
-  userEmail: string; // Поле userEmail для фильтрации
+  userEmail: string; // Field for user filtering
 }
 
 interface OrderContextType {
@@ -28,7 +28,7 @@ const OrderContext = createContext<OrderContextType | undefined>(undefined);
 export const OrderProvider = ({ children }: { children: ReactNode }) => {
   const [orders, setOrders] = useState<Order[]>([]);
 
-  // Загрузка заказов из localStorage при инициализации
+  // Load orders from localStorage on initialization
   useEffect(() => {
     const storedOrders = localStorage.getItem('orders');
     if (storedOrders) {
@@ -36,7 +36,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  // Сохранение заказов в localStorage при изменении
+  // Save orders to localStorage when changed
   useEffect(() => {
     localStorage.setItem('orders', JSON.stringify(orders));
   }, [orders]);
@@ -49,21 +49,36 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       status: 'pending'
     };
 
+    // Update main orders list
     setOrders(prevOrders => [...prevOrders, newOrder]);
     
-    // Проверим, существует ли уже список заказов для этого пользователя
+    // Ensure we have a userEmail for filtering
     const userEmail = orderData.userEmail;
-    const userOrdersKey = `userOrders_${userEmail}`;
-    const existingUserOrders = localStorage.getItem(userOrdersKey);
     
-    let userOrders = [];
-    if (existingUserOrders) {
-      userOrders = JSON.parse(existingUserOrders);
+    if (userEmail) {
+      // Save to user-specific orders
+      const userOrdersKey = `userOrders_${userEmail}`;
+      const existingUserOrders = localStorage.getItem(userOrdersKey);
+      
+      let userOrders = [];
+      if (existingUserOrders) {
+        try {
+          userOrders = JSON.parse(existingUserOrders);
+        } catch (error) {
+          console.error("Error parsing user orders:", error);
+          userOrders = [];
+        }
+      }
+      
+      userOrders.push(newOrder);
+      localStorage.setItem(userOrdersKey, JSON.stringify(userOrders));
+      
+      // For debugging
+      console.log(`Added order to ${userOrdersKey}:`, newOrder);
+      console.log("Current user orders:", userOrders);
+    } else {
+      console.warn("Order created without userEmail, will not appear in user history");
     }
-    
-    // Добавим новый заказ в список заказов пользователя
-    userOrders.push(newOrder);
-    localStorage.setItem(userOrdersKey, JSON.stringify(userOrders));
     
     return newOrder;
   };
@@ -72,21 +87,25 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     setOrders(prevOrders => 
       prevOrders.map(order => {
         if (order.id === orderId) {
-          // Обновляем и основной список, и заказы пользователя
+          // Update main order list
           const updatedOrder = { ...order, status };
           
-          // Обновляем в userOrders_[email] если заказ содержит email пользователя
+          // Also update in user-specific orders if email exists
           if (order.userEmail) {
             const userOrdersKey = `userOrders_${order.userEmail}`;
             const userOrders = localStorage.getItem(userOrdersKey);
             
             if (userOrders) {
-              const parsedUserOrders = JSON.parse(userOrders);
-              const updatedUserOrders = parsedUserOrders.map((userOrder: Order) => 
-                userOrder.id === orderId ? { ...userOrder, status } : userOrder
-              );
-              
-              localStorage.setItem(userOrdersKey, JSON.stringify(updatedUserOrders));
+              try {
+                const parsedUserOrders = JSON.parse(userOrders);
+                const updatedUserOrders = parsedUserOrders.map((userOrder: Order) => 
+                  userOrder.id === orderId ? { ...userOrder, status } : userOrder
+                );
+                
+                localStorage.setItem(userOrdersKey, JSON.stringify(updatedUserOrders));
+              } catch (error) {
+                console.error("Error updating user order status:", error);
+              }
             }
           }
           

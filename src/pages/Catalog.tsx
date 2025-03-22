@@ -15,8 +15,9 @@ const Catalog = () => {
   const [books, setBooks] = useState<BookType[]>([]);
   const [borrowedBooks, setBorrowedBooks] = useState<number[]>([]);
   
-  // Загрузка книг при инициализации
+  // Load books on initialization
   useEffect(() => {
+    // First try to get books from localStorage
     const storedBooks = localStorage.getItem('books');
     if (storedBooks) {
       try {
@@ -31,13 +32,13 @@ const Catalog = () => {
       }
     }
     
-    // Если в localStorage нет книг или произошла ошибка, загружаем стандартные данные
+    // If no books in localStorage or error occurred, use default data and save it
     console.log('Using default books data:', booksData.length);
     setBooks(booksData);
     localStorage.setItem('books', JSON.stringify(booksData));
   }, []);
   
-  // Получаем информацию о книгах, взятых пользователем
+  // Get information about books borrowed by the user
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (!userData) return;
@@ -64,10 +65,10 @@ const Catalog = () => {
     }
   }, []);
   
-  // Получаем список жанров из данных книг
+  // Get list of genres from book data
   const genres = Array.from(new Set(books.map(book => book.genre)));
   
-  // Фильтруем книги при изменении фильтров или данных
+  // Filter books when filters or data change
   useEffect(() => {
     let result = books;
     
@@ -86,9 +87,6 @@ const Catalog = () => {
     
     setFilteredBooks(result);
   }, [selectedGenre, searchTerm, books]);
-  
-  console.log('Current books state:', books.length);
-  console.log('Filtered books:', filteredBooks.length);
   
   return (
     <div className="pt-16">

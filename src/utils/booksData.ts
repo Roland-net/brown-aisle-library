@@ -8,7 +8,7 @@ export const booksData: BookType[] = [
     author: "Джейн Остин",
     price: 650,
     genre: "Классическая литература",
-    image: "https://m.media-amazon.com/images/I/71Q1tPupKjL._AC_UF1000,1000_QL80_.jpg",
+    image: "https://cdn.book24.ru/v2/ASE000000000843249/COVER/cover3d__w600.webp",
     stock: 12
   },
   {
@@ -17,7 +17,7 @@ export const booksData: BookType[] = [
     author: "Михаил Булгаков",
     price: 720,
     genre: "Классическая литература",
-    image: "https://s1.livelib.ru/boocover/1000530481/o/13c3/Mihail_Bulgakov__Master_i_Margarita.jpeg",
+    image: "https://cdn.book24.ru/v2/ASE000000000836750/COVER/cover3d__w600.webp",
     stock: 8
   },
   {
@@ -26,7 +26,7 @@ export const booksData: BookType[] = [
     author: "Джордж Оруэлл",
     price: 580,
     genre: "Антиутопия",
-    image: "https://s1.livelib.ru/boocover/1000299297/o/cad6/Dzhordzh_Oruell__1984.jpeg",
+    image: "https://cdn.book24.ru/v2/ASE000000000851179/COVER/cover3d__w600.webp",
     stock: 5
   },
   {
@@ -35,7 +35,7 @@ export const booksData: BookType[] = [
     author: "Дж. К. Роулинг",
     price: 850,
     genre: "Фэнтези",
-    image: "https://s1.livelib.ru/boocover/1000330229/o/da50/Dzhoan_Ketlin_Rouling__Garri_Potter_i_filosofskij_kamen.jpeg",
+    image: "https://cdn.book24.ru/v2/ITD000000000912310/COVER/cover3d__w600.webp",
     stock: 15
   },
   {
@@ -44,7 +44,7 @@ export const booksData: BookType[] = [
     author: "Федор Достоевский",
     price: 690,
     genre: "Классическая литература",
-    image: "https://s1.livelib.ru/boocover/1000326153/o/1cde/Fedor_Dostoevskij__Prestuplenie_i_nakazanie.jpeg",
+    image: "https://cdn.book24.ru/v2/ASE000000000843284/COVER/cover3d__w600.webp",
     stock: 7
   },
   {
@@ -53,7 +53,7 @@ export const booksData: BookType[] = [
     author: "Лев Толстой",
     price: 950,
     genre: "Классическая литература",
-    image: "https://s1.livelib.ru/boocover/1000167605/o/b0d9/Lev_Tolstoj__Vojna_i_mir.jpeg",
+    image: "https://cdn.book24.ru/v2/ASE000000000836754/COVER/cover3d__w600.webp",
     stock: 3
   },
   {
@@ -62,7 +62,7 @@ export const booksData: BookType[] = [
     author: "Эрих Мария Ремарк",
     price: 680,
     genre: "Современная проза",
-    image: "https://s1.livelib.ru/boocover/1000509055/o/0db7/Erih_Mariya_Remark__Tri_tovarischa.jpeg",
+    image: "https://cdn.book24.ru/v2/ASE000000000850890/COVER/cover3d__w600.webp",
     stock: 9
   },
   {
@@ -71,7 +71,7 @@ export const booksData: BookType[] = [
     author: "Дэниел Киз",
     price: 590,
     genre: "Научная фантастика",
-    image: "https://s1.livelib.ru/boocover/1000959521/o/b9dd/Deniel_Kiz__Tsvety_dlya_Eldzhernona.jpeg",
+    image: "https://cdn.book24.ru/v2/ASE000000000851175/COVER/cover3d__w600.webp",
     stock: 11
   },
   {
@@ -80,7 +80,7 @@ export const booksData: BookType[] = [
     author: "Джек Лондон",
     price: 710,
     genre: "Современная проза",
-    image: "https://s1.livelib.ru/boocover/1000522133/o/1c11/Dzhek_London__Martin_Iden.jpeg",
+    image: "https://cdn.book24.ru/v2/ASE000000000836800/COVER/cover3d__w600.webp",
     stock: 6
   },
   {
@@ -89,7 +89,7 @@ export const booksData: BookType[] = [
     author: "Артур Конан Дойл",
     price: 760,
     genre: "Детектив",
-    image: "https://s1.livelib.ru/boocover/1000506616/o/dea3/Artur_Konan_Dojl__Zapiski_o_Sherloke_Holmse.jpeg",
+    image: "https://cdn.book24.ru/v2/ASE000000000851006/COVER/cover3d__w600.webp",
     stock: 4
   },
   {
@@ -98,7 +98,7 @@ export const booksData: BookType[] = [
     author: "Фрэнсис Скотт Фицджеральд",
     price: 620,
     genre: "Классическая литература",
-    image: "https://s1.livelib.ru/boocover/1002873147/o/d8bb/Frensis_Skott_Fitsdzherald__Velikij_Getsbi.jpeg",
+    image: "https://cdn.book24.ru/v2/ASE000000000836781/COVER/cover3d__w600.webp",
     stock: 10
   },
   {
@@ -107,7 +107,7 @@ export const booksData: BookType[] = [
     author: "Дж. Р. Р. Толкин",
     price: 880,
     genre: "Фэнтези",
-    image: "https://s1.livelib.ru/boocover/1001539536/o/aaf9/Dzhon_R._R._Tolkin__Vlastelin_Kolets._Tryohknizhe.jpeg",
+    image: "https://cdn.book24.ru/v2/ASE000000000850957/COVER/cover3d__w600.webp",
     stock: 2
   }
 ];
