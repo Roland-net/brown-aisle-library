@@ -13,11 +13,12 @@ export interface Order {
   total: number;
   date: string;
   status: 'pending' | 'completed';
+  userEmail?: string; // Add userEmail field for filtering
 }
 
 interface OrderContextType {
   orders: Order[];
-  addOrder: (order: Omit<Order, 'id' | 'date' | 'status'>) => void;
+  addOrder: (order: Omit<Order, 'id' | 'date' | 'status'>) => Order;
   updateOrderStatus: (orderId: string, status: 'pending' | 'completed') => void;
   getOrderById: (orderId: string) => Order | undefined;
 }

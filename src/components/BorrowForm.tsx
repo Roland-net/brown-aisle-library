@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -15,8 +14,8 @@ const formSchema = z.object({
   name: z.string().min(2, { message: "Имя должно содержать минимум 2 символа" }),
   email: z.string().email({ message: "Введите корректный email" }),
   phone: z.string().min(10, { message: "Телефон должен содержать минимум 10 цифр" }),
-  agreement: z.literal(true, {
-    errorMap: () => ({ message: "Вы должны согласиться с условиями" }),
+  agreement: z.boolean().refine(val => val === true, {
+    message: "Вы должны согласиться с условиями",
   }),
 });
 

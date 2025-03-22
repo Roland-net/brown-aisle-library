@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Admin = () => {
   const { books, setBooks, loading } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState("orders");
+  const [activeTab, setActiveTab] = useState("stock");
   
   if (loading) {
     return (
@@ -24,21 +24,21 @@ const Admin = () => {
         
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
-            <TabsTrigger value="orders">Заказы</TabsTrigger>
             <TabsTrigger value="stock">Управление запасами</TabsTrigger>
+            <TabsTrigger value="orders">Заказы</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="orders" className="space-y-6">
-            <div className="bg-white rounded-lg shadow-md p-6 overflow-hidden">
-              <h2 className="text-xl font-medium mb-6 text-brown-700">Управление заказами</h2>
-              <OrdersTable />
-            </div>
-          </TabsContent>
           
           <TabsContent value="stock" className="space-y-6">
             <div className="bg-white rounded-lg shadow-md p-6 overflow-hidden">
               <h2 className="text-xl font-medium mb-4 text-brown-700">Управление запасами книг</h2>
               <BookStockTable books={books} setBooks={setBooks} />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="orders" className="space-y-6">
+            <div className="bg-white rounded-lg shadow-md p-6 overflow-hidden">
+              <h2 className="text-xl font-medium mb-6 text-brown-700">Управление заказами</h2>
+              <OrdersTable />
             </div>
           </TabsContent>
         </Tabs>

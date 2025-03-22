@@ -8,7 +8,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { LoaderCircle } from "lucide-react";
 import { useCart } from '@/context/CartContext';
 import { toast } from '@/components/ui/use-toast';
@@ -18,11 +17,8 @@ const formSchema = z.object({
   name: z.string().min(2, { message: "Имя должно содержать минимум 2 символа" }),
   email: z.string().email({ message: "Введите корректный email" }),
   phone: z.string().min(10, { message: "Телефон должен содержать минимум 10 цифр" }),
-  delivery: z.enum(["самовывоз", "доставка"]),
-  address: z.string().optional(),
-  paymentMethod: z.enum(["card", "cash"]),
-  agreement: z.literal(true, {
-    errorMap: () => ({ message: "Вы должны согласиться с условиями" }),
+  agreement: z.boolean().refine(val => val === true, {
+    message: "Вы должны согласиться с условиями",
   }),
 });
 
@@ -42,14 +38,9 @@ const CheckoutForm = () => {
       name: "",
       email: "",
       phone: "",
-      delivery: "самовывоз",
-      address: "",
-      paymentMethod: "card",
       agreement: false,
     },
   });
-  
-  const deliveryMethod = form.watch("delivery");
 
   const onSubmit = (values: FormValues) => {
     if (cart.length === 0) {
@@ -73,7 +64,8 @@ const CheckoutForm = () => {
           phone: values.phone,
           email: values.email
         },
-        total: totalPrice
+        total: totalPrice,
+        userEmail: values.email // Add userEmail to the order for filtering
       });
       
       // Очищаем корзину
@@ -134,98 +126,6 @@ const CheckoutForm = () => {
                 <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input type="email" placeholder="example@mail.ru" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        <div className="border-t border-brown-200 pt-6">
-          <h3 className="text-xl font-serif mb-4">Способ получения</h3>
-          
-          <FormField
-            control={form.control}
-            name="delivery"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex flex-col space-y-1"
-                  >
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="самовывоз" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Самовывоз из магазина
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="доставка" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Доставка курьером
-                      </FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {deliveryMethod === "доставка" && (
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem className="mt-4">
-                  <FormLabel>Адрес доставки</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Город, улица, дом, квартира" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-        </div>
-        
-        <div className="border-t border-brown-200 pt-6">
-          <h3 className="text-xl font-serif mb-4">Способ оплаты</h3>
-          
-          <FormField
-            control={form.control}
-            name="paymentMethod"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex flex-col space-y-1"
-                  >
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="card" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Банковской картой онлайн
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="cash" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Наличными при получении
-                      </FormLabel>
-                    </FormItem>
-                  </RadioGroup>
                 </FormControl>
                 <FormMessage />
               </FormItem>
