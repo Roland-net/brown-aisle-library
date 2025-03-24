@@ -31,6 +31,7 @@ export interface BorrowFormProps {
 const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loggedInUserEmail, setLoggedInUserEmail] = useState<string | null>(null);
+  const [loggedInUserName, setLoggedInUserName] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Load user data from localStorage if available
@@ -41,6 +42,7 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
         const user = JSON.parse(userData);
         if (user && user.email) {
           setLoggedInUserEmail(user.email);
+          setLoggedInUserName(user.name || '');
           // Pre-fill form with user data if logged in
           form.setValue('name', user.name || '');
           form.setValue('email', user.email || '');
@@ -64,8 +66,9 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
   const onSubmit = (values: FormValues) => {
     setIsSubmitting(true);
     
-    // Get the user email for borrow tracking
-    const userEmail = values.email || loggedInUserEmail;
+    // Get the user email for borrow tracking - prefer logged in user if available
+    const userEmail = loggedInUserEmail || values.email;
+    const userName = loggedInUserName || values.name;
     
     if (!userEmail) {
       toast({
@@ -89,8 +92,9 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
       book: book,
       returnDate: returnDate.toISOString(),
       status: "Взято в чтение",
+      userEmail: userEmail, // Important: include user email for filtering
       customer: {
-        name: values.name,
+        name: userName,
         email: userEmail,
         phone: values.phone
       }
@@ -134,9 +138,9 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
       status: "Взято в чтение",
       isBorrow: true,
       returnDate: returnDate.toISOString(),
-      userEmail: userEmail,
+      userEmail: userEmail, // Important: include user email for filtering
       customer: {
-        name: values.name,
+        name: userName,
         email: userEmail,
         phone: values.phone
       }

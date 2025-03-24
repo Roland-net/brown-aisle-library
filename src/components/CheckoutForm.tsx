@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -75,8 +74,7 @@ const CheckoutForm = () => {
     
     setIsSubmitting(true);
     
-    // Use the logged-in user's email and name for the order
-    // This ensures admin orders are associated with the admin account
+    // Use the logged-in user's email and name for the order if available
     const userEmail = loggedInUserEmail || values.email;
     const userName = loggedInUserName || values.name;
     

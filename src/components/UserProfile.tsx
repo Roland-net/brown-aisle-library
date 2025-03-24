@@ -81,8 +81,12 @@ const UserProfile = () => {
             console.log("Orders from 'userOrders_[email]':", parsedUserOrders);
             
             if (Array.isArray(parsedUserOrders) && parsedUserOrders.length > 0) {
-              combinedOrders = [...combinedOrders, ...parsedUserOrders];
-              console.log("Added user-specific orders:", parsedUserOrders.length);
+              // Only include orders that actually belong to this user
+              const userFilteredOrders = parsedUserOrders.filter(
+                (order: OrderData) => order.userEmail === userEmail
+              );
+              combinedOrders = [...combinedOrders, ...userFilteredOrders];
+              console.log("Added user-specific orders:", userFilteredOrders.length);
             }
           } catch (error) {
             console.error(`Error parsing userOrders_${userEmail}:`, error);
@@ -120,8 +124,13 @@ const UserProfile = () => {
             console.log("Borrows from 'userBorrows_[email]':", parsedBorrows);
             
             if (Array.isArray(parsedBorrows) && parsedBorrows.length > 0) {
+              // Filter borrows to only include this user's
+              const userFilteredBorrows = parsedBorrows.filter(
+                (borrow: any) => !borrow.userEmail || borrow.userEmail === userEmail
+              );
+              
               // Format borrow records as order-like entries
-              const formattedBorrows = parsedBorrows.map((borrow: any) => ({
+              const formattedBorrows = userFilteredBorrows.map((borrow: any) => ({
                 id: borrow.id,
                 date: borrow.date,
                 items: [{ ...borrow.book, quantity: 1 }],

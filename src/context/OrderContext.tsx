@@ -45,6 +45,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     // Get the user from localStorage to ensure we're using the correct user email
     const userData = localStorage.getItem('user');
     let userEmail = orderData.userEmail; // Default to provided email
+    let userName = orderData.customer.name; // Default to provided name
     
     // If user data exists in localStorage, use that email to ensure consistency
     if (userData) {
@@ -52,6 +53,9 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
         const parsedUser = JSON.parse(userData);
         if (parsedUser && parsedUser.email) {
           userEmail = parsedUser.email;
+          if (parsedUser.name) {
+            userName = parsedUser.name;
+          }
           console.log("Using logged-in user email for order:", userEmail);
         }
       } catch (error) {
@@ -64,7 +68,12 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       id: Date.now().toString(),
       date: new Date().toISOString(),
       status: 'pending',
-      userEmail: userEmail // Ensure we use the correct email
+      userEmail: userEmail, // Ensure we use the correct email
+      customer: {
+        ...orderData.customer,
+        email: userEmail, // Update customer email to match user email
+        name: userName // Use logged-in user name if available
+      }
     };
 
     // Update main orders list

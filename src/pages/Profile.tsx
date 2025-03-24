@@ -9,7 +9,7 @@ const Profile = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Проверяем, авторизован ли пользователь
+    // Check if user is logged in
     const userData = localStorage.getItem('user');
     if (!userData) {
       toast({
@@ -20,6 +20,17 @@ const Profile = () => {
       navigate('/login');
     }
   }, [navigate]);
+  
+  // Log out any existing user if requested
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('logout') === 'true') {
+    localStorage.removeItem('user');
+    toast({
+      title: "Выход выполнен",
+      description: "Вы успешно вышли из системы",
+    });
+    navigate('/login');
+  }
   
   return (
     <div className="pt-24 min-h-screen bg-cream-50">

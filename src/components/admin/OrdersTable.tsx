@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useOrders, Order } from '@/context/OrderContext';
 import { 
@@ -45,7 +44,7 @@ const OrdersTable = () => {
     }
   }, []);
   
-  // Обновим состояние заказов из localStorage напрямую
+  // Update orders state from localStorage directly
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   
   useEffect(() => {
@@ -61,33 +60,10 @@ const OrdersTable = () => {
       }
     }
     
-    // If admin is logged in, also check for admin-specific orders
-    if (adminEmail) {
-      const adminOrdersKey = `userOrders_${adminEmail}`;
-      const adminSpecificOrders = localStorage.getItem(adminOrdersKey);
-      
-      if (adminSpecificOrders) {
-        try {
-          const parsedAdminOrders = JSON.parse(adminSpecificOrders);
-          
-          // Add admin-specific orders that aren't already in the main orders list
-          if (Array.isArray(parsedAdminOrders)) {
-            const existingIds = new Set(ordersFromStorage.map(order => order.id));
-            const newAdminOrders = parsedAdminOrders.filter(
-              (order: Order) => !existingIds.has(order.id)
-            );
-            
-            ordersFromStorage = [...ordersFromStorage, ...newAdminOrders];
-            console.log("Added admin-specific orders:", newAdminOrders.length);
-          }
-        } catch (error) {
-          console.error("Error parsing admin orders:", error);
-        }
-      }
-    }
-    
+    // Admin sees all orders from the main orders list
     setAllOrders(ordersFromStorage);
-  }, [orders, adminEmail]); // Зависимость от orders для обновления при изменениях
+    
+  }, [orders, adminEmail]); // Dependency on orders for updating when changes occur
   
   const pendingOrders = allOrders.filter(order => order.status === 'pending');
   const completedOrders = allOrders.filter(order => order.status === 'completed');
@@ -105,7 +81,7 @@ const OrdersTable = () => {
   const handleStatusChange = (orderId: string, status: 'pending' | 'completed') => {
     updateOrderStatus(orderId, status);
     
-    // Обновим локальное состояние заказов
+    // Update local orders state
     setAllOrders(prevOrders => 
       prevOrders.map(order => 
         order.id === orderId ? { ...order, status } : order
