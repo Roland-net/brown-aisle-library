@@ -42,21 +42,36 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   }, [orders]);
 
   const addOrder = (orderData: Omit<Order, 'id' | 'date' | 'status'>) => {
+    // Get the user from localStorage to ensure we're using the correct user email
+    const userData = localStorage.getItem('user');
+    let userEmail = orderData.userEmail; // Default to provided email
+    
+    // If user data exists in localStorage, use that email to ensure consistency
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        if (parsedUser && parsedUser.email) {
+          userEmail = parsedUser.email;
+          console.log("Using logged-in user email for order:", userEmail);
+        }
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
+    
     const newOrder: Order = {
       ...orderData,
       id: Date.now().toString(),
       date: new Date().toISOString(),
-      status: 'pending'
+      status: 'pending',
+      userEmail: userEmail // Ensure we use the correct email
     };
 
     // Update main orders list
     setOrders(prevOrders => [...prevOrders, newOrder]);
     
-    // Ensure we have a userEmail for filtering
-    const userEmail = orderData.userEmail;
-    
+    // Save to user-specific orders
     if (userEmail) {
-      // Save to user-specific orders
       const userOrdersKey = `userOrders_${userEmail}`;
       const existingUserOrders = localStorage.getItem(userOrdersKey);
       

@@ -27,6 +27,7 @@ type FormValues = z.infer<typeof formSchema>;
 const CheckoutForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loggedInUserEmail, setLoggedInUserEmail] = useState<string | null>(null);
+  const [loggedInUserName, setLoggedInUserName] = useState<string | null>(null);
   const { cart, clearCart } = useCart();
   const { addOrder } = useOrders();
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ const CheckoutForm = () => {
         const user = JSON.parse(userData);
         if (user && user.email) {
           setLoggedInUserEmail(user.email);
+          setLoggedInUserName(user.name || '');
           // Pre-fill form with user data if logged in
           form.setValue('name', user.name || '');
           form.setValue('email', user.email || '');
@@ -73,8 +75,10 @@ const CheckoutForm = () => {
     
     setIsSubmitting(true);
     
-    // Get the user email for order tracking - either from form or logged in user
-    const userEmail = values.email || loggedInUserEmail;
+    // Use the logged-in user's email and name for the order
+    // This ensures admin orders are associated with the admin account
+    const userEmail = loggedInUserEmail || values.email;
+    const userName = loggedInUserName || values.name;
     
     if (!userEmail) {
       toast({
@@ -86,19 +90,19 @@ const CheckoutForm = () => {
       return;
     }
     
-    // Create order
+    // Create order with the correct user information
     const newOrder = addOrder({
       items: cart,
       customer: {
-        name: values.name,
+        name: userName,
         phone: values.phone,
-        email: values.email
+        email: userEmail
       },
       total: totalPrice,
       userEmail: userEmail // Add userEmail to the order for filtering
     });
     
-    console.log("New order created:", newOrder);
+    console.log("New order created with user email:", userEmail);
     
     // Clear cart
     clearCart();

@@ -28,16 +28,66 @@ const OrdersTable = () => {
   const { orders, updateOrderStatus } = useOrders();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [adminEmail, setAdminEmail] = useState<string | null>(null);
+  
+  // Get the admin's email to ensure we can identify their orders
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        if (parsedUser && parsedUser.email) {
+          setAdminEmail(parsedUser.email);
+        }
+      } catch (error) {
+        console.error("Error parsing admin user data:", error);
+      }
+    }
+  }, []);
   
   // Обновим состояние заказов из localStorage напрямую
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   
   useEffect(() => {
+    // Load all orders from localStorage
     const storedOrders = localStorage.getItem('orders');
+    let ordersFromStorage: Order[] = [];
+    
     if (storedOrders) {
-      setAllOrders(JSON.parse(storedOrders));
+      try {
+        ordersFromStorage = JSON.parse(storedOrders);
+      } catch (error) {
+        console.error("Error parsing orders:", error);
+      }
     }
-  }, [orders]); // Зависимость от orders для обновления при изменениях
+    
+    // If admin is logged in, also check for admin-specific orders
+    if (adminEmail) {
+      const adminOrdersKey = `userOrders_${adminEmail}`;
+      const adminSpecificOrders = localStorage.getItem(adminOrdersKey);
+      
+      if (adminSpecificOrders) {
+        try {
+          const parsedAdminOrders = JSON.parse(adminSpecificOrders);
+          
+          // Add admin-specific orders that aren't already in the main orders list
+          if (Array.isArray(parsedAdminOrders)) {
+            const existingIds = new Set(ordersFromStorage.map(order => order.id));
+            const newAdminOrders = parsedAdminOrders.filter(
+              (order: Order) => !existingIds.has(order.id)
+            );
+            
+            ordersFromStorage = [...ordersFromStorage, ...newAdminOrders];
+            console.log("Added admin-specific orders:", newAdminOrders.length);
+          }
+        } catch (error) {
+          console.error("Error parsing admin orders:", error);
+        }
+      }
+    }
+    
+    setAllOrders(ordersFromStorage);
+  }, [orders, adminEmail]); // Зависимость от orders для обновления при изменениях
   
   const pendingOrders = allOrders.filter(order => order.status === 'pending');
   const completedOrders = allOrders.filter(order => order.status === 'completed');
