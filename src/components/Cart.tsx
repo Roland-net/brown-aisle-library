@@ -4,7 +4,7 @@ import { useCart } from '@/context/CartContext';
 import { motion } from 'framer-motion';
 import CheckoutForm from '@/components/CheckoutForm';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Dialog,
@@ -13,18 +13,74 @@ import {
   DialogTitle
 } from "@/components/ui/dialog";
 import BorrowForm from '@/components/BorrowForm';
+import { toast } from '@/components/ui/use-toast';
 
 const Cart = () => {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
   const [showBorrowDialog, setShowBorrowDialog] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   
   const totalPrice = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 
+  // Check if user is logged in
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    setIsLoggedIn(!!userData);
+  }, []);
+
   const handleBorrowBooks = () => {
-    // Show the borrow dialog with all cart items
-    setShowBorrowDialog(true);
+    // Check if user is logged in first
+    if (!isLoggedIn) {
+      toast({
+        title: "Требуется авторизация",
+        description: "Пожалуйста, войдите в систему, чтобы взять книгу",
+        variant: "destructive",
+      });
+      navigate('/login');
+      return;
+    }
+    
+    // Show the borrow dialog with the first cart item
+    if (cart.length > 0) {
+      // Check if book is in stock
+      if (cart[0].stock <= 0) {
+        toast({
+          title: "Книга недоступна",
+          description: "К сожалению, данной книги нет в наличии",
+          variant: "destructive",
+        });
+        return;
+      }
+      setShowBorrowDialog(true);
+    }
+  };
+
+  const handleCheckout = () => {
+    // Check if user is logged in first
+    if (!isLoggedIn) {
+      toast({
+        title: "Требуется авторизация",
+        description: "Пожалуйста, войдите в систему, чтобы оформить заказ",
+        variant: "destructive",
+      });
+      navigate('/login');
+      return;
+    }
+    
+    // Validate stock quantities for all items in cart
+    const invalidItems = cart.filter(item => item.quantity > item.stock);
+    if (invalidItems.length > 0) {
+      toast({
+        title: "Ошибка оформления заказа",
+        description: `Недостаточно книг в наличии: ${invalidItems.map(item => item.title).join(", ")}`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setShowCheckout(!showCheckout);
   };
   
   if (cart.length === 0) {
@@ -64,7 +120,14 @@ const Cart = () => {
                 <h3 className="font-medium">{item.title}</h3>
                 <p className="text-sm text-brown-600">{item.author}</p>
                 <p className="text-brown-800 mt-1">{item.price.toLocaleString()} ₽</p>
-                <p className="text-sm text-brown-600">Осталось в наличии: {item.stock - item.quantity}</p>
+                <p className="text-sm text-brown-600">
+                  Осталось в наличии: {item.stock - item.quantity >= 0 ? item.stock - item.quantity : 0}
+                  {item.quantity > item.stock && 
+                    <span className="text-red-500 ml-2">
+                      (Превышен лимит!)
+                    </span>
+                  }
+                </p>
               </div>
               
               <div className="flex items-center ml-4">
@@ -75,7 +138,7 @@ const Cart = () => {
                   <Minus size={16} />
                 </button>
                 
-                <span className="w-10 text-center font-medium">{item.quantity}</span>
+                <span className={`w-10 text-center font-medium ${item.quantity > item.stock ? 'text-red-500' : ''}`}>{item.quantity}</span>
                 
                 <button 
                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
@@ -119,19 +182,27 @@ const Cart = () => {
               onClick={handleBorrowBooks} 
               variant="secondary"
               className="flex items-center justify-center gap-2"
+              disabled={cart.length === 0 || cart[0].stock <= 0}
             >
               <BookOpen size={18} />
               Взять почитать
             </Button>
             
             <Button 
-              onClick={() => setShowCheckout(!showCheckout)} 
+              onClick={handleCheckout} 
               variant="default"
               className="flex-grow"
+              disabled={cart.some(item => item.quantity > item.stock)}
             >
               {showCheckout ? "Вернуться к корзине" : "Оформить заказ"}
             </Button>
           </div>
+          
+          {cart.some(item => item.quantity > item.stock) && (
+            <p className="text-red-500 mt-2 text-sm">
+              В корзине есть товары, количество которых превышает доступное количество. Пожалуйста, уменьшите количество.
+            </p>
+          )}
         </div>
       </div>
       

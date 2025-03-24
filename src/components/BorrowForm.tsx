@@ -14,7 +14,6 @@ import { toast } from '@/components/ui/use-toast';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Имя должно содержать минимум 2 символа" }),
-  email: z.string().email({ message: "Введите корректный email" }),
   phone: z.string().min(10, { message: "Телефон должен содержать минимум 10 цифр" }),
   passportSeries: z.string().min(4, { message: "Серия паспорта должна содержать минимум 4 символа" }),
   passportNumber: z.string().min(6, { message: "Номер паспорта должен содержать минимум 6 символов" }),
@@ -34,13 +33,13 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loggedInUserEmail, setLoggedInUserEmail] = useState<string | null>(null);
   const [loggedInUserName, setLoggedInUserName] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      email: "",
       phone: "",
       passportSeries: "",
       passportNumber: "",
@@ -48,7 +47,7 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
     },
   });
 
-  // Load user data from localStorage if available
+  // Load user data from localStorage and verify login status
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
@@ -57,38 +56,76 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
         if (user && user.email) {
           setLoggedInUserEmail(user.email);
           setLoggedInUserName(user.name || '');
+          setIsLoggedIn(true);
           // Pre-fill form with user data if logged in
           form.setValue('name', user.name || '');
-          form.setValue('email', user.email || '');
-          
-          // Disable email field since we're using the logged-in user's email
-          const emailField = document.getElementById('email') as HTMLInputElement;
-          if (emailField) {
-            emailField.disabled = true;
-          }
+        } else {
+          setIsLoggedIn(false);
         }
       } catch (error) {
         console.error("Error parsing user data:", error);
+        setIsLoggedIn(false);
       }
+    } else {
+      setIsLoggedIn(false);
     }
   }, [form]);
+
+  // Redirect to login if not logged in
+  useEffect(() => {
+    if (!isLoggedIn) {
+      toast({
+        title: "Требуется авторизация",
+        description: "Пожалуйста, войдите в систему, чтобы взять книгу",
+        variant: "destructive",
+      });
+      navigate('/login');
+    }
+  }, [isLoggedIn, navigate]);
+
+  // Check if book is available in stock
+  useEffect(() => {
+    if (book && book.stock <= 0) {
+      toast({
+        title: "Книга недоступна",
+        description: "К сожалению, данной книги нет в наличии",
+        variant: "destructive",
+      });
+      if (onComplete) {
+        onComplete();
+      }
+    }
+  }, [book, onComplete]);
 
   const onSubmit = (values: FormValues) => {
     setIsSubmitting(true);
     
-    // Get the user email for borrow tracking - prefer logged in user if available
-    const userEmail = loggedInUserEmail || values.email;
-    const userName = loggedInUserName || values.name;
-    
-    if (!userEmail) {
+    // Verify user is logged in
+    if (!loggedInUserEmail) {
       toast({
         title: "Ошибка",
-        description: "Email не указан",
+        description: "Требуется авторизация для оформления книги",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      navigate('/login');
+      return;
+    }
+    
+    // Verify book is in stock
+    if (book.stock <= 0) {
+      toast({
+        title: "Ошибка",
+        description: "Данной книги нет в наличии",
         variant: "destructive",
       });
       setIsSubmitting(false);
       return;
     }
+    
+    // Use the logged-in user information
+    const userEmail = loggedInUserEmail;
+    const userName = loggedInUserName || values.name;
     
     // Calculate return date (14 days from now)
     const returnDate = new Date();
@@ -102,7 +139,7 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
       book: book,
       returnDate: returnDate.toISOString(),
       status: "Взято в чтение",
-      userEmail: userEmail, // Important: include user email for filtering
+      userEmail: userEmail,
       passportData: {
         series: values.passportSeries,
         number: values.passportNumber
@@ -156,7 +193,7 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
         series: values.passportSeries,
         number: values.passportNumber
       },
-      userEmail: userEmail, // Important: include user email for filtering
+      userEmail: userEmail,
       customer: {
         name: userName,
         email: userEmail,
@@ -166,9 +203,6 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
     
     userOrders.push(orderRecord);
     localStorage.setItem(userOrdersKey, JSON.stringify(userOrders));
-    
-    console.log("New borrow record created:", borrowRecord);
-    console.log("Added to user orders as:", orderRecord);
     
     // Update book stock in localStorage
     const storedBooks = localStorage.getItem('books');
@@ -202,6 +236,22 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
     }
   };
 
+  // Don't render the form if not logged in or book not in stock
+  if (!isLoggedIn || (book && book.stock <= 0)) {
+    return (
+      <div className="flex flex-col items-center justify-center py-4">
+        <p className="text-center text-red-500 mb-4">
+          {!isLoggedIn 
+            ? "Пожалуйста, войдите в систему, чтобы взять книгу" 
+            : "К сожалению, данной книги нет в наличии"}
+        </p>
+        <Button onClick={() => navigate(!isLoggedIn ? '/login' : '/')}>
+          {!isLoggedIn ? "Войти" : "Вернуться в каталог"}
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -217,6 +267,7 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
           <div>
             <h3 className="font-medium">{book.title}</h3>
             <p className="text-sm text-brown-600">{book.author}</p>
+            <p className="text-sm text-brown-600">В наличии: {book.stock}</p>
           </div>
         </div>
         
@@ -243,26 +294,6 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
                 <FormLabel>Телефон</FormLabel>
                 <FormControl>
                   <Input placeholder="+7 (900) 123-45-67" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input 
-                    id="email"
-                    type="email" 
-                    placeholder="example@mail.ru" 
-                    {...field} 
-                    className={loggedInUserEmail ? "bg-gray-100" : ""}
-                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -324,7 +355,7 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
         <Button 
           type="submit" 
           className="w-full" 
-          disabled={isSubmitting}
+          disabled={isSubmitting || book.stock <= 0}
         >
           {isSubmitting ? (
             <>

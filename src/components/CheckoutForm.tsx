@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -14,7 +15,6 @@ import { useOrders } from '@/context/OrderContext';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Имя должно содержать минимум 2 символа" }),
-  email: z.string().email({ message: "Введите корректный email" }),
   phone: z.string().min(10, { message: "Телефон должен содержать минимум 10 цифр" }),
   agreement: z.boolean().refine(val => val === true, {
     message: "Вы должны согласиться с условиями",
@@ -27,11 +27,21 @@ const CheckoutForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loggedInUserEmail, setLoggedInUserEmail] = useState<string | null>(null);
   const [loggedInUserName, setLoggedInUserName] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { cart, clearCart } = useCart();
   const { addOrder } = useOrders();
   const navigate = useNavigate();
   
   const totalPrice = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      phone: "",
+      agreement: false,
+    },
+  });
 
   // Load user data from localStorage if available
   useEffect(() => {
@@ -42,25 +52,47 @@ const CheckoutForm = () => {
         if (user && user.email) {
           setLoggedInUserEmail(user.email);
           setLoggedInUserName(user.name || '');
+          setIsLoggedIn(true);
           // Pre-fill form with user data if logged in
           form.setValue('name', user.name || '');
-          form.setValue('email', user.email || '');
+        } else {
+          setIsLoggedIn(false);
         }
       } catch (error) {
         console.error("Error parsing user data:", error);
+        setIsLoggedIn(false);
       }
+    } else {
+      setIsLoggedIn(false);
     }
-  }, []);
+  }, [form]);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      agreement: false,
-    },
-  });
+  // Redirect to login if not logged in
+  useEffect(() => {
+    if (!isLoggedIn) {
+      toast({
+        title: "Требуется авторизация",
+        description: "Пожалуйста, войдите в систему, чтобы оформить заказ",
+        variant: "destructive",
+      });
+      navigate('/login');
+    }
+  }, [isLoggedIn, navigate]);
+
+  // Check if all items in cart are available in stock
+  const validateCartStock = () => {
+    const invalidItems = cart.filter(item => item.quantity > item.stock);
+    if (invalidItems.length > 0) {
+      const itemNames = invalidItems.map(item => item.title).join(", ");
+      toast({
+        title: "Ошибка оформления заказа",
+        description: `Недостаточно книг в наличии: ${itemNames}`,
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  }
 
   const onSubmit = (values: FormValues) => {
     if (cart.length === 0) {
@@ -72,21 +104,26 @@ const CheckoutForm = () => {
       return;
     }
     
-    setIsSubmitting(true);
-    
-    // Use the logged-in user's email and name for the order if available
-    const userEmail = loggedInUserEmail || values.email;
-    const userName = loggedInUserName || values.name;
-    
-    if (!userEmail) {
+    if (!isLoggedIn || !loggedInUserEmail) {
       toast({
-        title: "Ошибка",
-        description: "Email не указан",
+        title: "Требуется авторизация",
+        description: "Пожалуйста, войдите в систему для оформления заказа",
         variant: "destructive",
       });
-      setIsSubmitting(false);
+      navigate('/login');
       return;
     }
+    
+    // Validate stock quantities
+    if (!validateCartStock()) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    // Use the logged-in user's email and name for the order
+    const userEmail = loggedInUserEmail;
+    const userName = loggedInUserName || values.name;
     
     // Create order with the correct user information
     const newOrder = addOrder({
@@ -97,10 +134,27 @@ const CheckoutForm = () => {
         email: userEmail
       },
       total: totalPrice,
-      userEmail: userEmail // Add userEmail to the order for filtering
+      userEmail: userEmail
     });
     
-    console.log("New order created with user email:", userEmail);
+    // Update book stock in localStorage
+    const storedBooks = localStorage.getItem('books');
+    if (storedBooks) {
+      try {
+        const books = JSON.parse(storedBooks);
+        const updatedBooks = books.map((book: any) => {
+          const cartItem = cart.find(item => item.id === book.id);
+          if (cartItem) {
+            // Reduce the stock by the quantity ordered
+            return { ...book, stock: Math.max(0, book.stock - cartItem.quantity) };
+          }
+          return book;
+        });
+        localStorage.setItem('books', JSON.stringify(updatedBooks));
+      } catch (error) {
+        console.error("Error updating book stock:", error);
+      }
+    }
     
     // Clear cart
     clearCart();
@@ -116,6 +170,20 @@ const CheckoutForm = () => {
     
     setIsSubmitting(false);
   };
+
+  // Don't render the form if not logged in
+  if (!isLoggedIn) {
+    return (
+      <div className="flex flex-col items-center justify-center py-4">
+        <p className="text-center text-red-500 mb-4">
+          Пожалуйста, войдите в систему, чтобы оформить заказ
+        </p>
+        <Button onClick={() => navigate('/login')}>
+          Войти
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>
@@ -151,19 +219,11 @@ const CheckoutForm = () => {
             )}
           />
           
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input type="email" placeholder="example@mail.ru" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="md:col-span-2">
+            <p className="text-sm text-brown-600 mb-2">
+              Email: <span className="font-medium">{loggedInUserEmail}</span>
+            </p>
+          </div>
         </div>
         
         <FormField
@@ -190,7 +250,7 @@ const CheckoutForm = () => {
         <Button 
           type="submit" 
           className="w-full" 
-          disabled={isSubmitting}
+          disabled={isSubmitting || !validateCartStock()}
         >
           {isSubmitting ? (
             <>
