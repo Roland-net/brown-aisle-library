@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, User, Lock } from 'lucide-react';
@@ -7,6 +8,12 @@ import { Input } from "@/components/ui/input";
 import { booksData } from '@/utils/booksData';
 
 interface FormData {
+  name: string;
+  email: string;
+  password: string;
+}
+
+interface UserData {
   name: string;
   email: string;
   password: string;
@@ -57,14 +64,38 @@ const Login = () => {
         return;
       }
       
-      // В реальном приложении здесь была бы проверка учетных данных
-      // Для демонстрации просто сохраняем данные пользователя
+      // Получаем зарегистрированных пользователей
+      const usersString = localStorage.getItem('users');
+      const users: UserData[] = usersString ? JSON.parse(usersString) : [];
+      
+      // Ищем пользователя по email
+      const user = users.find(u => u.email === formData.email);
+      
+      if (!user) {
+        toast({
+          title: "Ошибка",
+          description: "Пользователь с таким email не найден",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Проверяем пароль
+      if (user.password !== formData.password) {
+        toast({
+          title: "Ошибка",
+          description: "Неверный пароль",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Сохраняем данные пользователя в localStorage (без пароля)
       const userData = {
-        name: formData.email.split('@')[0], // Используем часть email как имя
-        email: formData.email
+        name: user.name,
+        email: user.email
       };
       
-      // Сохраняем данные пользователя в localStorage
       localStorage.setItem('user', JSON.stringify(userData));
       
       toast({
@@ -86,7 +117,30 @@ const Login = () => {
         return;
       }
       
-      // Сохраняем данные пользователя в localStorage
+      // Проверяем, что пользователь с таким email не существует
+      const usersString = localStorage.getItem('users');
+      let users: UserData[] = usersString ? JSON.parse(usersString) : [];
+      
+      if (users.some(user => user.email === formData.email)) {
+        toast({
+          title: "Ошибка",
+          description: "Пользователь с таким email уже существует",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Добавляем нового пользователя в список
+      const newUser: UserData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
+      };
+      
+      users.push(newUser);
+      localStorage.setItem('users', JSON.stringify(users));
+      
+      // Сохраняем данные пользователя для текущей сессии (без пароля)
       const userData = {
         name: formData.name,
         email: formData.email
