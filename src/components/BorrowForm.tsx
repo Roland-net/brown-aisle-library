@@ -16,6 +16,8 @@ const formSchema = z.object({
   name: z.string().min(2, { message: "Имя должно содержать минимум 2 символа" }),
   email: z.string().email({ message: "Введите корректный email" }),
   phone: z.string().min(10, { message: "Телефон должен содержать минимум 10 цифр" }),
+  passportSeries: z.string().min(4, { message: "Серия паспорта должна содержать минимум 4 символа" }),
+  passportNumber: z.string().min(6, { message: "Номер паспорта должен содержать минимум 6 символов" }),
   agreement: z.boolean().refine(val => val === true, {
     message: "Вы должны согласиться с условиями",
   }),
@@ -34,6 +36,18 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
   const [loggedInUserName, setLoggedInUserName] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      passportSeries: "",
+      passportNumber: "",
+      agreement: false,
+    },
+  });
+
   // Load user data from localStorage if available
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -46,22 +60,18 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
           // Pre-fill form with user data if logged in
           form.setValue('name', user.name || '');
           form.setValue('email', user.email || '');
+          
+          // Disable email field since we're using the logged-in user's email
+          const emailField = document.getElementById('email') as HTMLInputElement;
+          if (emailField) {
+            emailField.disabled = true;
+          }
         }
       } catch (error) {
         console.error("Error parsing user data:", error);
       }
     }
-  }, []);
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      agreement: false,
-    },
-  });
+  }, [form]);
 
   const onSubmit = (values: FormValues) => {
     setIsSubmitting(true);
@@ -93,6 +103,10 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
       returnDate: returnDate.toISOString(),
       status: "Взято в чтение",
       userEmail: userEmail, // Important: include user email for filtering
+      passportData: {
+        series: values.passportSeries,
+        number: values.passportNumber
+      },
       customer: {
         name: userName,
         email: userEmail,
@@ -138,6 +152,10 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
       status: "Взято в чтение",
       isBorrow: true,
       returnDate: returnDate.toISOString(),
+      passportData: {
+        series: values.passportSeries,
+        number: values.passportNumber
+      },
       userEmail: userEmail, // Important: include user email for filtering
       customer: {
         name: userName,
@@ -238,12 +256,48 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="example@mail.ru" {...field} />
+                  <Input 
+                    id="email"
+                    type="email" 
+                    placeholder="example@mail.ru" 
+                    {...field} 
+                    className={loggedInUserEmail ? "bg-gray-100" : ""}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="passportSeries"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Серия паспорта</FormLabel>
+                  <FormControl>
+                    <Input placeholder="0000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="passportNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Номер паспорта</FormLabel>
+                  <FormControl>
+                    <Input placeholder="000000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
         
         <FormField
