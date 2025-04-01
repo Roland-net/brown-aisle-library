@@ -15,6 +15,7 @@ const Profile = () => {
       // Check if user is logged in
       const userData = localStorage.getItem('user');
       if (!userData) {
+        console.log("Profile: No user data found, redirecting to login");
         toast({
           title: "Требуется авторизация",
           description: "Пожалуйста, войдите в аккаунт для доступа к профилю",
@@ -25,8 +26,31 @@ const Profile = () => {
         return;
       }
       
-      setIsLoggedIn(true);
-      setIsLoading(false);
+      try {
+        const parsedUser = JSON.parse(userData);
+        if (!parsedUser || !parsedUser.email) {
+          console.log("Profile: Invalid user data, redirecting to login");
+          toast({
+            title: "Требуется авторизация",
+            description: "Пожалуйста, войдите в аккаунт для доступа к профилю",
+            variant: "destructive",
+          });
+          setIsLoggedIn(false);
+          localStorage.removeItem('user');
+          navigate('/login');
+          return;
+        }
+        
+        console.log("Profile: User is logged in:", parsedUser.email);
+        setIsLoggedIn(true);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Profile: Error parsing user data", error);
+        setIsLoggedIn(false);
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
       
       // Check URL parameters
       const params = new URLSearchParams(window.location.search);
@@ -49,9 +73,11 @@ const Profile = () => {
     
     // Listen for login state changes
     window.addEventListener('userLoginStateChanged', checkLoginStatus);
+    window.addEventListener('storage', checkLoginStatus);
     
     return () => {
       window.removeEventListener('userLoginStateChanged', checkLoginStatus);
+      window.removeEventListener('storage', checkLoginStatus);
     };
   }, [navigate]);
   

@@ -24,12 +24,19 @@ const UserMenu = () => {
       if (userData) {
         try {
           const parsedUser = JSON.parse(userData);
-          setUser(parsedUser);
-          console.log('User loaded in UserMenu:', parsedUser);
+          if (parsedUser && parsedUser.email) {
+            setUser(parsedUser);
+            console.log('User loaded in UserMenu:', parsedUser);
+          } else {
+            console.log('Invalid user data in UserMenu:', parsedUser);
+            setUser(null);
+          }
         } catch (error) {
           console.error('Error parsing user data:', error);
+          setUser(null);
         }
       } else {
+        console.log('No user data in UserMenu');
         setUser(null);
       }
     };

@@ -21,6 +21,7 @@ const Cart = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [showBorrowDialog, setShowBorrowDialog] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [selectedBook, setSelectedBook] = useState<any>(null);
   const navigate = useNavigate();
   
   const totalPrice = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -28,8 +29,22 @@ const Cart = () => {
   // Check if user is logged in - improved to handle changes
   useEffect(() => {
     const checkLoginStatus = () => {
-      const userData = localStorage.getItem('user');
-      setIsLoggedIn(!!userData);
+      try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          const user = JSON.parse(userData);
+          if (user && user.email) {
+            setIsLoggedIn(true);
+            console.log("Cart detected user is logged in:", user.email);
+            return;
+          }
+        }
+        setIsLoggedIn(false);
+        console.log("Cart detected user is NOT logged in");
+      } catch (error) {
+        console.error("Error checking login status:", error);
+        setIsLoggedIn(false);
+      }
     };
     
     // Check on mount
@@ -47,7 +62,8 @@ const Cart = () => {
 
   const handleBorrowBooks = () => {
     // Check if user is logged in first
-    if (!isLoggedIn) {
+    const userData = localStorage.getItem('user');
+    if (!userData) {
       toast({
         title: "Требуется авторизация",
         description: "Пожалуйста, войдите в систему, чтобы взять книгу",
@@ -68,13 +84,15 @@ const Cart = () => {
         });
         return;
       }
+      setSelectedBook(cart[0]);
       setShowBorrowDialog(true);
     }
   };
 
   const handleCheckout = () => {
     // Check if user is logged in first
-    if (!isLoggedIn) {
+    const userData = localStorage.getItem('user');
+    if (!userData) {
       toast({
         title: "Требуется авторизация",
         description: "Пожалуйста, войдите в систему, чтобы оформить заказ",
@@ -236,9 +254,9 @@ const Cart = () => {
               Заполните необходимые данные для получения книги
             </DialogDescription>
           </DialogHeader>
-          {cart.length > 0 && (
+          {selectedBook && (
             <BorrowForm 
-              book={cart[0]} 
+              book={selectedBook} 
               onComplete={() => {
                 setShowBorrowDialog(false);
                 clearCart();
