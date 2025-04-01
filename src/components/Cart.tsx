@@ -61,9 +61,18 @@ const Cart = () => {
   }, []);
 
   const handleBorrowBooks = () => {
-    // Check if user is logged in first
-    const userData = localStorage.getItem('user');
-    if (!userData) {
+    // Ensure cart has items
+    if (cart.length === 0) {
+      toast({
+        title: "Корзина пуста",
+        description: "Добавьте книгу в корзину, чтобы взять её почитать",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if user is logged in
+    if (!isLoggedIn) {
       toast({
         title: "Требуется авторизация",
         description: "Пожалуйста, войдите в систему, чтобы взять книгу",
@@ -74,25 +83,22 @@ const Cart = () => {
     }
     
     // Show the borrow dialog with the first cart item
-    if (cart.length > 0) {
-      // Check if book is in stock
-      if (cart[0].stock <= 0) {
-        toast({
-          title: "Книга недоступна",
-          description: "К сожалению, данной книги нет в наличии",
-          variant: "destructive",
-        });
-        return;
-      }
-      setSelectedBook(cart[0]);
-      setShowBorrowDialog(true);
+    if (cart[0].stock <= 0) {
+      toast({
+        title: "Книга недоступна",
+        description: "К сожалению, данной книги нет в наличии",
+        variant: "destructive",
+      });
+      return;
     }
+    
+    setSelectedBook(cart[0]);
+    setShowBorrowDialog(true);
   };
 
   const handleCheckout = () => {
     // Check if user is logged in first
-    const userData = localStorage.getItem('user');
-    if (!userData) {
+    if (!isLoggedIn) {
       toast({
         title: "Требуется авторизация",
         description: "Пожалуйста, войдите в систему, чтобы оформить заказ",

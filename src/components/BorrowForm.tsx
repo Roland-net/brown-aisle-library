@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -14,8 +15,6 @@ import { toast } from '@/components/ui/use-toast';
 const formSchema = z.object({
   name: z.string().min(2, { message: "Имя должно содержать минимум 2 символа" }),
   phone: z.string().min(10, { message: "Телефон должен содержать минимум 10 цифр" }),
-  passportSeries: z.string().min(4, { message: "Серия паспорта должна содержать минимум 4 символа" }),
-  passportNumber: z.string().min(6, { message: "Номер паспорта должен содержать минимум 6 символов" }),
   agreement: z.boolean().refine(val => val === true, {
     message: "Вы должны согласиться с условиями",
   }),
@@ -40,8 +39,6 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
     defaultValues: {
       name: "",
       phone: "",
-      passportSeries: "",
-      passportNumber: "",
       agreement: false,
     },
   });
@@ -166,10 +163,6 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
         returnDate: returnDate.toISOString(),
         status: "Взято в чтение",
         userEmail: userEmail,
-        passportData: {
-          series: values.passportSeries,
-          number: values.passportNumber
-        },
         customer: {
           name: userName,
           email: userEmail,
@@ -215,10 +208,6 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
         status: "Взято в чтение",
         isBorrow: true,
         returnDate: returnDate.toISOString(),
-        passportData: {
-          series: values.passportSeries,
-          number: values.passportNumber
-        },
         userEmail: userEmail,
         customer: {
           name: userName,
@@ -348,36 +337,6 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
               </FormItem>
             )}
           />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="passportSeries"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Серия паспорта</FormLabel>
-                  <FormControl>
-                    <Input placeholder="0000" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="passportNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Номер паспорта</FormLabel>
-                  <FormControl>
-                    <Input placeholder="000000" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
         </div>
         
         <FormField

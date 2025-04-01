@@ -10,22 +10,30 @@ const NavbarActions = () => {
   
   useEffect(() => {
     const checkUserLogin = () => {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        try {
+      try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
           const parsedUser = JSON.parse(userData);
-          setIsLoggedIn(true);
-          setUser(parsedUser);
-          console.log("User is logged in:", parsedUser.email);
-        } catch (error) {
-          console.error("Error parsing user data:", error);
+          if (parsedUser && parsedUser.email) {
+            setIsLoggedIn(true);
+            setUser(parsedUser);
+            console.log("User is logged in:", parsedUser.email);
+          } else {
+            console.log("Invalid user data format");
+            setIsLoggedIn(false);
+            setUser(null);
+            localStorage.removeItem('user'); // Clear invalid data
+          }
+        } else {
           setIsLoggedIn(false);
           setUser(null);
+          console.log("User is not logged in");
         }
-      } else {
+      } catch (error) {
+        console.error("Error parsing user data:", error);
         setIsLoggedIn(false);
         setUser(null);
-        console.log("User is not logged in");
+        localStorage.removeItem('user'); // Clear invalid data
       }
     };
 
