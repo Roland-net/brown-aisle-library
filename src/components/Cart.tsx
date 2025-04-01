@@ -10,7 +10,8 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
+  DialogDescription
 } from "@/components/ui/dialog";
 import BorrowForm from '@/components/BorrowForm';
 import { toast } from '@/components/ui/use-toast';
@@ -34,11 +35,13 @@ const Cart = () => {
     // Check on mount
     checkLoginStatus();
     
-    // Also check when storage changes
+    // Also check when storage or login state changes
     window.addEventListener('storage', checkLoginStatus);
+    window.addEventListener('userLoginStateChanged', checkLoginStatus);
     
     return () => {
       window.removeEventListener('storage', checkLoginStatus);
+      window.removeEventListener('userLoginStateChanged', checkLoginStatus);
     };
   }, []);
 
@@ -229,6 +232,9 @@ const Cart = () => {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Оформление книг на чтение</DialogTitle>
+            <DialogDescription>
+              Заполните необходимые данные для получения книги
+            </DialogDescription>
           </DialogHeader>
           {cart.length > 0 && (
             <BorrowForm 

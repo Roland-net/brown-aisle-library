@@ -8,32 +8,51 @@ import { toast } from '@/components/ui/use-toast';
 const Profile = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   useEffect(() => {
-    // Check if user is logged in
-    const userData = localStorage.getItem('user');
-    if (!userData) {
-      toast({
-        title: "Требуется авторизация",
-        description: "Пожалуйста, войдите в аккаунт для доступа к профилю",
-        variant: "destructive",
-      });
-      navigate('/login');
-      return;
-    }
+    const checkLoginStatus = () => {
+      // Check if user is logged in
+      const userData = localStorage.getItem('user');
+      if (!userData) {
+        toast({
+          title: "Требуется авторизация",
+          description: "Пожалуйста, войдите в аккаунт для доступа к профилю",
+          variant: "destructive",
+        });
+        setIsLoggedIn(false);
+        navigate('/login');
+        return;
+      }
+      
+      setIsLoggedIn(true);
+      setIsLoading(false);
+      
+      // Check URL parameters
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('logout') === 'true') {
+        localStorage.removeItem('user');
+        
+        // Dispatch custom event
+        window.dispatchEvent(new Event('userLoginStateChanged'));
+        
+        toast({
+          title: "Выход выполнен",
+          description: "Вы успешно вышли из системы",
+        });
+        navigate('/login');
+      }
+    };
     
-    setIsLoading(false);
+    // Check immediately
+    checkLoginStatus();
     
-    // Check URL parameters
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('logout') === 'true') {
-      localStorage.removeItem('user');
-      toast({
-        title: "Выход выполнен",
-        description: "Вы успешно вышли из системы",
-      });
-      navigate('/login');
-    }
+    // Listen for login state changes
+    window.addEventListener('userLoginStateChanged', checkLoginStatus);
+    
+    return () => {
+      window.removeEventListener('userLoginStateChanged', checkLoginStatus);
+    };
   }, [navigate]);
   
   if (isLoading) {
@@ -44,6 +63,10 @@ const Profile = () => {
         </div>
       </div>
     );
+  }
+  
+  if (!isLoggedIn) {
+    return null; // Will redirect to login
   }
   
   return (

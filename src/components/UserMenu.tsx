@@ -19,16 +19,34 @@ const UserMenu = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-        console.log('User loaded in UserMenu:', parsedUser);
-      } catch (error) {
-        console.error('Error parsing user data:', error);
+    const handleUserChange = () => {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          console.log('User loaded in UserMenu:', parsedUser);
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+        }
+      } else {
+        setUser(null);
       }
-    }
+    };
+    
+    // Run on mount
+    handleUserChange();
+    
+    // Listen for localStorage changes
+    window.addEventListener('storage', handleUserChange);
+    
+    // Listen for custom event for login state changes
+    window.addEventListener('userLoginStateChanged', handleUserChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleUserChange);
+      window.removeEventListener('userLoginStateChanged', handleUserChange);
+    };
   }, []);
   
   const getInitials = (name: string) => {
@@ -42,8 +60,11 @@ const UserMenu = () => {
       title: "Выход выполнен",
       description: "Вы успешно вышли из аккаунта"
     });
+    
+    // Dispatch custom event
+    window.dispatchEvent(new Event('userLoginStateChanged'));
+    
     navigate('/');
-    window.location.reload();
   };
   
   if (!user) return null;

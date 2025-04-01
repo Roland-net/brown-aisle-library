@@ -27,12 +27,13 @@ const NavbarActions = () => {
       }
     };
 
+    // Run immediately on component mount
     checkUserLogin();
     
-    // This will handle when localStorage changes in other tabs
+    // Listen for localStorage changes in other tabs
     window.addEventListener('storage', checkUserLogin);
     
-    // This custom event will handle when localStorage changes in the same tab
+    // Listen for custom event for login state changes
     window.addEventListener('userLoginStateChanged', checkUserLogin);
     
     return () => {

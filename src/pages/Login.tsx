@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, User, Lock } from 'lucide-react';
@@ -73,7 +74,7 @@ const Login = () => {
       if (!user) {
         toast({
           title: "Ошибка",
-          description: "Польз��ватель с таким email не найден",
+          description: "Пользователь с таким email не найден",
           variant: "destructive",
         });
         return;
