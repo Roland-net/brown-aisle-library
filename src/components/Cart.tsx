@@ -24,10 +24,22 @@ const Cart = () => {
   
   const totalPrice = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 
-  // Check if user is logged in
+  // Check if user is logged in - improved to handle changes
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    setIsLoggedIn(!!userData);
+    const checkLoginStatus = () => {
+      const userData = localStorage.getItem('user');
+      setIsLoggedIn(!!userData);
+    };
+    
+    // Check on mount
+    checkLoginStatus();
+    
+    // Also check when storage changes
+    window.addEventListener('storage', checkLoginStatus);
+    
+    return () => {
+      window.removeEventListener('storage', checkLoginStatus);
+    };
   }, []);
 
   const handleBorrowBooks = () => {

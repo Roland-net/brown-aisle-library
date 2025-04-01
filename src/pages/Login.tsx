@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, User, Lock } from 'lucide-react';
@@ -74,7 +73,7 @@ const Login = () => {
       if (!user) {
         toast({
           title: "Ошибка",
-          description: "Пользователь с таким email не найден",
+          description: "Польз��ватель с таким email не найден",
           variant: "destructive",
         });
         return;
@@ -98,14 +97,16 @@ const Login = () => {
       
       localStorage.setItem('user', JSON.stringify(userData));
       
+      // Dispatch a custom event to notify other components about the login state change
+      window.dispatchEvent(new Event('userLoginStateChanged'));
+      
       toast({
         title: "Успешный вход",
         description: "Вы успешно вошли в свой аккаунт",
       });
       
-      // Перенаправляем на профиль и перезагружаем страницу
+      // Перенаправляем на профиль
       navigate('/profile');
-      window.location.reload();
     } else {
       // Register logic
       if (!formData.name || !formData.email || !formData.password) {
@@ -148,14 +149,16 @@ const Login = () => {
       
       localStorage.setItem('user', JSON.stringify(userData));
       
+      // Dispatch a custom event to notify other components about the login state change
+      window.dispatchEvent(new Event('userLoginStateChanged'));
+      
       toast({
         title: "Регистрация завершена",
         description: "Ваш аккаунт был успешно создан",
       });
       
-      // Перенаправляем на профиль и перезагружаем страницу
+      // Перенаправляем на профиль
       navigate('/profile');
-      window.location.reload();
     }
   };
   

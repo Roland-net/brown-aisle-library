@@ -16,7 +16,6 @@ const NavbarActions = () => {
           const parsedUser = JSON.parse(userData);
           setIsLoggedIn(true);
           setUser(parsedUser);
-          console.log("User logged in:", parsedUser);
         } catch (error) {
           console.error("Error parsing user data:", error);
           setIsLoggedIn(false);
@@ -30,9 +29,16 @@ const NavbarActions = () => {
 
     checkUserLogin();
     
-    // Добавляем слушатель для storage, чтобы обновлять состояние при изменениях в localStorage
+    // This will handle when localStorage changes in other tabs
     window.addEventListener('storage', checkUserLogin);
-    return () => window.removeEventListener('storage', checkUserLogin);
+    
+    // This custom event will handle when localStorage changes in the same tab
+    window.addEventListener('userLoginStateChanged', checkUserLogin);
+    
+    return () => {
+      window.removeEventListener('storage', checkUserLogin);
+      window.removeEventListener('userLoginStateChanged', checkUserLogin);
+    };
   }, []);
   
   return (

@@ -1,12 +1,13 @@
 
 import { motion } from 'framer-motion';
 import UserProfile from '@/components/UserProfile';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
 
 const Profile = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     // Check if user is logged in
@@ -18,18 +19,31 @@ const Profile = () => {
         variant: "destructive",
       });
       navigate('/login');
+      return;
+    }
+    
+    setIsLoading(false);
+    
+    // Check URL parameters
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('logout') === 'true') {
+      localStorage.removeItem('user');
+      toast({
+        title: "Выход выполнен",
+        description: "Вы успешно вышли из системы",
+      });
+      navigate('/login');
     }
   }, [navigate]);
   
-  // Log out any existing user if requested
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('logout') === 'true') {
-    localStorage.removeItem('user');
-    toast({
-      title: "Выход выполнен",
-      description: "Вы успешно вышли из системы",
-    });
-    navigate('/login');
+  if (isLoading) {
+    return (
+      <div className="pt-24 min-h-screen bg-cream-50 flex justify-center items-center">
+        <div className="text-center">
+          <p className="text-brown-600">Загрузка профиля...</p>
+        </div>
+      </div>
+    );
   }
   
   return (
