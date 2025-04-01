@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { User, Package, LogOut, BookOpen, ArrowLeft } from 'lucide-react';
+import { User, Package, LogOut, BookOpen, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { 
   Tabs, 
   TabsContent, 
@@ -247,6 +247,51 @@ const UserProfile = () => {
     loadUserData();
   };
   
+  const handleLostBook = (orderId: string | number) => {
+    if (!userData) return;
+    
+    // Find the borrow/order in the list
+    const order = orders.find(o => o.id === orderId);
+    if (!order || !order.isBorrow) return;
+    
+    // Get user email
+    const userEmail = userData.email;
+    
+    // Update status in userBorrows
+    const userBorrows = localStorage.getItem(`userBorrows_${userEmail}`);
+    if (userBorrows) {
+      const borrows = JSON.parse(userBorrows);
+      const borrowIndex = borrows.findIndex((b: any) => b.id === orderId);
+      
+      if (borrowIndex !== -1) {
+        borrows[borrowIndex].status = "Утеряна";
+        localStorage.setItem(`userBorrows_${userEmail}`, JSON.stringify(borrows));
+      }
+    }
+    
+    // Update status in userOrders
+    const userOrders = localStorage.getItem(`userOrders_${userEmail}`);
+    if (userOrders) {
+      const parsedOrders = JSON.parse(userOrders);
+      const orderIndex = parsedOrders.findIndex((o: any) => o.id === orderId);
+      
+      if (orderIndex !== -1) {
+        parsedOrders[orderIndex].status = "Утеряна";
+        localStorage.setItem(`userOrders_${userEmail}`, JSON.stringify(parsedOrders));
+      }
+    }
+    
+    // Show notification
+    toast({
+      title: "Книга отмечена как утерянная",
+      description: "Вы отметили книгу как утерянную. Пожалуйста, свяжитесь с библиотекой.",
+      variant: "destructive",
+    });
+    
+    // Update UI
+    loadUserData();
+  };
+  
   if (!userData) {
     return (
       <div className="text-center py-12">
@@ -340,6 +385,7 @@ const UserProfile = () => {
                             order.status === 'completed' || order.status === 'Доставлен' || order.status === 'Возвращено' ? 'bg-green-100 text-green-700' :
                             order.status === 'pending' || order.status === 'В обработке' ? 'bg-amber-100 text-amber-700' :
                             order.status === 'Взято в чтение' ? 'bg-blue-100 text-blue-700' :
+                            order.status === 'Утеряна' ? 'bg-red-100 text-red-700' :
                             'bg-gray-100 text-gray-700'
                           }`}>
                             {order.status === 'pending' ? 'В обработке' : 
@@ -348,15 +394,27 @@ const UserProfile = () => {
                           </span>
                           
                           {order.isBorrow && order.status === "Взято в чтение" && (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="flex items-center gap-1"
-                              onClick={() => handleReturnBook(order.id)}
-                            >
-                              <ArrowLeft size={14} />
-                              Вернуть
-                            </Button>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="flex items-center gap-1"
+                                onClick={() => handleReturnBook(order.id)}
+                              >
+                                <ArrowLeft size={14} />
+                                Вернуть
+                              </Button>
+                              
+                              <Button 
+                                size="sm" 
+                                variant="destructive" 
+                                className="flex items-center gap-1"
+                                onClick={() => handleLostBook(order.id)}
+                              >
+                                <AlertTriangle size={14} />
+                                Потерял
+                              </Button>
+                            </div>
                           )}
                         </div>
                       </div>

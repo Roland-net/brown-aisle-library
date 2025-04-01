@@ -286,6 +286,17 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
             )}
           />
           
+          {/* Display readonly email field */}
+          <div className="space-y-2">
+            <FormLabel>Email</FormLabel>
+            <Input 
+              value={loggedInUserEmail || ''} 
+              readOnly 
+              className="bg-brown-50 cursor-not-allowed"
+            />
+            <p className="text-xs text-brown-500">Email привязан к вашему аккаунту</p>
+          </div>
+          
           <FormField
             control={form.control}
             name="phone"
