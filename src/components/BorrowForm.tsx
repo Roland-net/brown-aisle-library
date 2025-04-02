@@ -23,11 +23,11 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export interface BorrowFormProps {
-  book: CartItem;
+  books: CartItem[];
   onComplete?: () => void;
 }
 
-const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
+const BorrowForm = ({ books, onComplete }: BorrowFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loggedInUserEmail, setLoggedInUserEmail] = useState<string | null>(null);
   const [loggedInUserName, setLoggedInUserName] = useState<string | null>(null);
@@ -102,19 +102,19 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
     return () => clearTimeout(timer);
   }, [isLoggedIn, navigate]);
 
-  // Check if book is available in stock
+  // Check if at least one book is available in stock
   useEffect(() => {
-    if (book && book.stock <= 0) {
+    if (books.length > 0 && !books.some(book => book.stock > 0)) {
       toast({
-        title: "Книга недоступна",
-        description: "К сожалению, данной книги нет в наличии",
+        title: "Книги недоступны",
+        description: "К сожалению, выбранных книг нет в наличии",
         variant: "destructive",
       });
       if (onComplete) {
         onComplete();
       }
     }
-  }, [book, onComplete]);
+  }, [books, onComplete]);
 
   const onSubmit = (values: FormValues) => {
     setIsSubmitting(true);
@@ -154,21 +154,85 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
       const returnDate = new Date();
       returnDate.setDate(returnDate.getDate() + 14);
       
-      // Create borrow record
-      const borrowId = Date.now().toString();
-      const borrowRecord = {
-        id: borrowId,
-        date: new Date().toISOString(),
-        book: book,
-        returnDate: returnDate.toISOString(),
-        status: "Взято в чтение",
-        userEmail: userEmail,
-        customer: {
-          name: userName,
-          email: userEmail,
-          phone: values.phone
+      // Get all available books
+      const availableBooks = books.filter(book => book.stock > 0);
+      
+      if (availableBooks.length === 0) {
+        toast({
+          title: "Книги недоступны",
+          description: "К сожалению, выбранных книг нет в наличии",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Create borrow records for each book
+      const borrowRecords = [];
+      const orderRecords = [];
+      const borrowedBooksInfo = [];
+      
+      // Get stored books to update stock
+      let storedBooks = [];
+      try {
+        const storedBooksData = localStorage.getItem('books');
+        if (storedBooksData) {
+          storedBooks = JSON.parse(storedBooksData);
         }
-      };
+      } catch (error) {
+        console.error("Error loading stored books:", error);
+      }
+      
+      // Process each book
+      for (const book of availableBooks) {
+        // Create unique borrowId for each book
+        const borrowId = `${Date.now()}-${book.id}`;
+        
+        // Create borrow record
+        const borrowRecord = {
+          id: borrowId,
+          date: new Date().toISOString(),
+          book: book,
+          returnDate: returnDate.toISOString(),
+          status: "Взято в чтение",
+          userEmail: userEmail,
+          customer: {
+            name: userName,
+            email: userEmail,
+            phone: values.phone
+          }
+        };
+        borrowRecords.push(borrowRecord);
+        
+        // Add as an order-like entry with isBorrow flag
+        const orderRecord = {
+          id: borrowId,
+          date: new Date().toISOString(),
+          items: [{ ...book, quantity: 1 }],
+          total: 0,
+          status: "Взято в чтение",
+          isBorrow: true,
+          returnDate: returnDate.toISOString(),
+          userEmail: userEmail,
+          customer: {
+            name: userName,
+            email: userEmail,
+            phone: values.phone
+          }
+        };
+        orderRecords.push(orderRecord);
+        
+        // Update book stock
+        if (storedBooks.length > 0) {
+          const bookIndex = storedBooks.findIndex((b: any) => b.id === book.id);
+          if (bookIndex !== -1) {
+            storedBooks[bookIndex].stock = Math.max(0, storedBooks[bookIndex].stock - 1);
+          }
+        }
+        
+        // Add book info for toast message
+        borrowedBooksInfo.push(book.title);
+      }
       
       // Save to userBorrows_[email]
       const userBorrowsKey = `userBorrows_${userEmail}`;
@@ -183,10 +247,10 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
         }
       }
       
-      userBorrows.push(borrowRecord);
+      userBorrows = [...userBorrows, ...borrowRecords];
       localStorage.setItem(userBorrowsKey, JSON.stringify(userBorrows));
       
-      // Also save to userOrders_[email] for unified history display
+      // Save to userOrders_[email] for unified history display
       const userOrdersKey = `userOrders_${userEmail}`;
       const existingOrders = localStorage.getItem(userOrdersKey);
       
@@ -199,46 +263,25 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
         }
       }
       
-      // Add as an order-like entry with isBorrow flag
-      const orderRecord = {
-        id: borrowId,
-        date: new Date().toISOString(),
-        items: [{ ...book, quantity: 1 }],
-        total: 0,
-        status: "Взято в чтение",
-        isBorrow: true,
-        returnDate: returnDate.toISOString(),
-        userEmail: userEmail,
-        customer: {
-          name: userName,
-          email: userEmail,
-          phone: values.phone
-        }
-      };
-      
-      userOrders.push(orderRecord);
+      userOrders = [...userOrders, ...orderRecords];
       localStorage.setItem(userOrdersKey, JSON.stringify(userOrders));
       
       // Update book stock in localStorage
-      const storedBooks = localStorage.getItem('books');
-      if (storedBooks) {
-        try {
-          const books = JSON.parse(storedBooks);
-          const updatedBooks = books.map((b: any) => {
-            if (b.id === book.id) {
-              return { ...b, stock: Math.max(0, b.stock - 1) };
-            }
-            return b;
-          });
-          localStorage.setItem('books', JSON.stringify(updatedBooks));
-        } catch (error) {
-          console.error("Error updating book stock:", error);
-        }
+      if (storedBooks.length > 0) {
+        localStorage.setItem('books', JSON.stringify(storedBooks));
       }
       
+      // Create toast message based on number of books
+      const booksMessage = borrowedBooksInfo.length === 1 
+        ? "Книга успешно оформлена" 
+        : "Книги успешно оформлены";
+      const detailMessage = borrowedBooksInfo.length === 1
+        ? "Книга будет доступна в течение 14 дней"
+        : `Оформлено книг: ${borrowedBooksInfo.length}. Срок чтения: 14 дней`;
+      
       toast({
-        title: "Книга успешно оформлена",
-        description: "Книга будет доступна в течение 14 дней",
+        title: booksMessage,
+        description: detailMessage,
       });
       
       setIsSubmitting(false);
@@ -263,14 +306,14 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
     }
   };
 
-  // Don't render the form if not logged in or book not in stock
-  if (!isLoggedIn || (book && book.stock <= 0)) {
+  // Don't render the form if not logged in or no books in stock
+  if (!isLoggedIn || (books.length > 0 && !books.some(book => book.stock > 0))) {
     return (
       <div className="flex flex-col items-center justify-center py-4">
         <p className="text-center text-red-500 mb-4">
           {!isLoggedIn 
             ? "Пожалуйста, войдите в систему, чтобы взять книгу" 
-            : "К сожалению, данной книги нет в наличии"}
+            : "К сожалению, выбранных книг нет в наличии"}
         </p>
         <Button onClick={() => navigate(!isLoggedIn ? '/login' : '/')}>
           {!isLoggedIn ? "Войти" : "Вернуться в каталог"}
@@ -279,22 +322,32 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
     );
   }
 
+  // Filter books to show only those in stock
+  const availableBooks = books.filter(book => book.stock > 0);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="flex items-center space-x-4 mb-4">
-          <div className="w-16 h-24 bg-brown-50 rounded overflow-hidden flex-shrink-0">
-            <img 
-              src={book.image} 
-              alt={book.title} 
-              className="w-full h-full object-cover"
-            />
-          </div>
-          
-          <div>
-            <h3 className="font-medium">{book.title}</h3>
-            <p className="text-sm text-brown-600">{book.author}</p>
-            <p className="text-sm text-brown-600">В наличии: {book.stock}</p>
+        {/* Display selected books */}
+        <div className="space-y-4 mb-4">
+          <h3 className="font-medium text-lg">Выбранные книги:</h3>
+          <div className="max-h-60 overflow-y-auto pr-2">
+            {availableBooks.map((book) => (
+              <div key={book.id} className="flex items-center space-x-4 mb-4 p-2 border border-brown-100 rounded">
+                <div className="w-12 h-16 bg-brown-50 rounded overflow-hidden flex-shrink-0">
+                  <img 
+                    src={book.image} 
+                    alt={book.title} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                
+                <div>
+                  <h4 className="font-medium text-sm">{book.title}</h4>
+                  <p className="text-xs text-brown-600">{book.author}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
         
@@ -352,7 +405,7 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
               </FormControl>
               <div className="space-y-1 leading-none">
                 <FormLabel>
-                  Я согласен с условиями получения книги для чтения и обязуюсь вернуть ее в течение 14 дней
+                  Я согласен с условиями получения книг для чтения и обязуюсь вернуть их в течение 14 дней
                 </FormLabel>
                 <FormMessage />
               </div>
@@ -363,7 +416,7 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
         <Button 
           type="submit" 
           className="w-full" 
-          disabled={isSubmitting || book.stock <= 0}
+          disabled={isSubmitting || availableBooks.length === 0}
         >
           {isSubmitting ? (
             <>
@@ -371,7 +424,7 @@ const BorrowForm = ({ book, onComplete }: BorrowFormProps) => {
               Оформление...
             </>
           ) : (
-            "Взять почитать"
+            `Взять ${availableBooks.length > 1 ? 'книги' : 'книгу'} почитать`
           )}
         </Button>
       </form>

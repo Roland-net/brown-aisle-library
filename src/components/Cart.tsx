@@ -21,7 +21,7 @@ const Cart = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [showBorrowDialog, setShowBorrowDialog] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [selectedBook, setSelectedBook] = useState<any>(null);
+  const [selectedBooks, setSelectedBooks] = useState<any[]>([]);
   const navigate = useNavigate();
   
   const totalPrice = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -82,17 +82,20 @@ const Cart = () => {
       return;
     }
     
-    // Show the borrow dialog with the first cart item
-    if (cart[0].stock <= 0) {
+    // Get all available books from cart
+    const availableBooks = cart.filter(item => item.stock > 0);
+    
+    if (availableBooks.length === 0) {
       toast({
-        title: "Книга недоступна",
-        description: "К сожалению, данной книги нет в наличии",
+        title: "Книги недоступны",
+        description: "К сожалению, выбранных книг нет в наличии",
         variant: "destructive",
       });
       return;
     }
     
-    setSelectedBook(cart[0]);
+    // Set all available books as selected
+    setSelectedBooks(availableBooks);
     setShowBorrowDialog(true);
   };
 
@@ -231,7 +234,7 @@ const Cart = () => {
               onClick={handleBorrowBooks} 
               variant="secondary"
               className="flex items-center justify-center gap-2"
-              disabled={cart.length === 0 || cart[0].stock <= 0}
+              disabled={cart.length === 0 || !cart.some(item => item.stock > 0)}
             >
               <BookOpen size={18} />
               Взять почитать
@@ -263,16 +266,16 @@ const Cart = () => {
       
       {/* Borrow Dialog */}
       <Dialog open={showBorrowDialog} onOpenChange={setShowBorrowDialog}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[800px]">
           <DialogHeader>
             <DialogTitle>Оформление книг на чтение</DialogTitle>
             <DialogDescription>
-              Заполните необходимые данные для получения книги
+              Заполните необходимые данные для получения книг
             </DialogDescription>
           </DialogHeader>
-          {selectedBook && (
+          {selectedBooks.length > 0 && (
             <BorrowForm 
-              book={selectedBook} 
+              books={selectedBooks} 
               onComplete={() => {
                 setShowBorrowDialog(false);
                 clearCart();

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { User, Package, LogOut, BookOpen, ArrowLeft, AlertTriangle } from 'lucide-react';
@@ -41,7 +40,6 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Determine initial tab based on URL parameter
   const getInitialTab = () => {
     const params = new URLSearchParams(location.search);
     return params.get('tab') === 'orders' ? 'orders' : 'profile';
@@ -49,7 +47,6 @@ const UserProfile = () => {
   
   const [activeTab, setActiveTab] = useState(getInitialTab);
   
-  // Update URL when tab changes
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const currentTab = params.get('tab');
@@ -60,20 +57,17 @@ const UserProfile = () => {
   }, [activeTab, location.search, navigate]);
 
   const loadUserData = () => {
-    // Load user data
     const storedUserData = localStorage.getItem('user');
     if (storedUserData) {
       try {
         const parsedUser = JSON.parse(storedUserData);
         setUserData(parsedUser);
         
-        // Get user email
         const userEmail = parsedUser.email;
         console.log("User email:", userEmail);
         
         let combinedOrders: OrderData[] = [];
         
-        // First check user-specific orders in 'userOrders_[email]' format
         const userSpecificOrders = localStorage.getItem(`userOrders_${userEmail}`);
         if (userSpecificOrders) {
           try {
@@ -81,7 +75,6 @@ const UserProfile = () => {
             console.log("Orders from 'userOrders_[email]':", parsedUserOrders);
             
             if (Array.isArray(parsedUserOrders) && parsedUserOrders.length > 0) {
-              // Only include orders that actually belong to this user
               const userFilteredOrders = parsedUserOrders.filter(
                 (order: OrderData) => order.userEmail === userEmail
               );
@@ -93,19 +86,16 @@ const UserProfile = () => {
           }
         }
         
-        // Then check general orders in 'orders'
         const ordersData = localStorage.getItem('orders');
         if (ordersData) {
           try {
             const allOrders = JSON.parse(ordersData);
             console.log("All orders from 'orders':", allOrders);
             
-            // Filter by current user's email
             const userOrders = allOrders.filter(
               (order: OrderData) => order.userEmail === userEmail
             );
             
-            // Add orders that aren't already in combinedOrders (check by id)
             const existingIds = new Set(combinedOrders.map(order => order.id));
             const newOrders = userOrders.filter(order => !existingIds.has(order.id));
             
@@ -116,7 +106,6 @@ const UserProfile = () => {
           }
         }
         
-        // Check for borrowed books in 'userBorrows_[email]'
         const userBorrows = localStorage.getItem(`userBorrows_${userEmail}`);
         if (userBorrows) {
           try {
@@ -124,12 +113,10 @@ const UserProfile = () => {
             console.log("Borrows from 'userBorrows_[email]':", parsedBorrows);
             
             if (Array.isArray(parsedBorrows) && parsedBorrows.length > 0) {
-              // Filter borrows to only include this user's
               const userFilteredBorrows = parsedBorrows.filter(
                 (borrow: any) => !borrow.userEmail || borrow.userEmail === userEmail
               );
               
-              // Format borrow records as order-like entries
               const formattedBorrows = userFilteredBorrows.map((borrow: any) => ({
                 id: borrow.id,
                 date: borrow.date,
@@ -141,7 +128,6 @@ const UserProfile = () => {
                 returnDate: borrow.returnDate || null
               }));
               
-              // Add borrows that aren't already in combinedOrders
               const existingIds = new Set(combinedOrders.map(order => order.id));
               const newBorrows = formattedBorrows.filter(borrow => !existingIds.has(borrow.id));
               
@@ -153,7 +139,6 @@ const UserProfile = () => {
           }
         }
         
-        // Sort by date (newest first)
         combinedOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setOrders(combinedOrders);
         
@@ -172,7 +157,6 @@ const UserProfile = () => {
     loadUserData();
   }, [navigate]);
   
-  // Update active tab when URL changes
   useEffect(() => {
     setActiveTab(getInitialTab());
   }, [location.search]);
@@ -190,14 +174,11 @@ const UserProfile = () => {
   const handleReturnBook = (orderId: string | number) => {
     if (!userData) return;
     
-    // Find the borrow/order in the list
     const order = orders.find(o => o.id === orderId);
     if (!order || !order.isBorrow) return;
     
-    // Get user email
     const userEmail = userData.email;
     
-    // Update status in userBorrows
     const userBorrows = localStorage.getItem(`userBorrows_${userEmail}`);
     if (userBorrows) {
       const borrows = JSON.parse(userBorrows);
@@ -209,7 +190,6 @@ const UserProfile = () => {
       }
     }
     
-    // Update status in userOrders
     const userOrders = localStorage.getItem(`userOrders_${userEmail}`);
     if (userOrders) {
       const parsedOrders = JSON.parse(userOrders);
@@ -221,43 +201,40 @@ const UserProfile = () => {
       }
     }
     
-    // Update book stock
     if (order.items && order.items.length > 0) {
-      const bookId = order.items[0].id;
       const storedBooks = localStorage.getItem('books');
       
       if (storedBooks) {
         const books = JSON.parse(storedBooks);
-        const bookIndex = books.findIndex((b: any) => b.id === bookId);
         
-        if (bookIndex !== -1) {
-          books[bookIndex].stock += 1;
-          localStorage.setItem('books', JSON.stringify(books));
-        }
+        order.items.forEach(item => {
+          const bookIndex = books.findIndex((b: any) => b.id === item.id);
+          
+          if (bookIndex !== -1) {
+            books[bookIndex].stock += 1;
+          }
+        });
+        
+        localStorage.setItem('books', JSON.stringify(books));
       }
     }
     
-    // Show notification
     toast({
       title: "Книга возвращена",
       description: "Спасибо! Книга успешно возвращена в библиотеку.",
     });
     
-    // Update UI
     loadUserData();
   };
   
   const handleLostBook = (orderId: string | number) => {
     if (!userData) return;
     
-    // Find the borrow/order in the list
     const order = orders.find(o => o.id === orderId);
     if (!order || !order.isBorrow) return;
     
-    // Get user email
     const userEmail = userData.email;
     
-    // Update status in userBorrows
     const userBorrows = localStorage.getItem(`userBorrows_${userEmail}`);
     if (userBorrows) {
       const borrows = JSON.parse(userBorrows);
@@ -269,7 +246,6 @@ const UserProfile = () => {
       }
     }
     
-    // Update status in userOrders
     const userOrders = localStorage.getItem(`userOrders_${userEmail}`);
     if (userOrders) {
       const parsedOrders = JSON.parse(userOrders);
@@ -281,14 +257,12 @@ const UserProfile = () => {
       }
     }
     
-    // Show notification
     toast({
       title: "Книга отмечена как утерянная",
       description: "Вы отметили книгу как утерянную. Пожалуйста, свяжитесь с библиотекой.",
       variant: "destructive",
     });
     
-    // Update UI
     loadUserData();
   };
   
