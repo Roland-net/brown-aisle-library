@@ -97,6 +97,16 @@ const Cart = () => {
   };
 
   const handleCheckout = () => {
+    // Check if cart has items
+    if (cart.length === 0) {
+      toast({
+        title: "Корзина пуста",
+        description: "Добавьте книгу в корзину, чтобы оформить заказ",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Check if user is logged in first
     if (!isLoggedIn) {
       toast({

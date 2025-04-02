@@ -45,39 +45,41 @@ const CheckoutForm = () => {
 
   // Load user data from localStorage if available
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
+    const checkLoginStatus = () => {
       try {
-        const user = JSON.parse(userData);
-        if (user && user.email) {
-          setLoggedInUserEmail(user.email);
-          setLoggedInUserName(user.name || '');
-          setIsLoggedIn(true);
-          // Pre-fill form with user data if logged in
-          form.setValue('name', user.name || '');
-        } else {
-          setIsLoggedIn(false);
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          const user = JSON.parse(userData);
+          if (user && user.email) {
+            setLoggedInUserEmail(user.email);
+            setLoggedInUserName(user.name || '');
+            setIsLoggedIn(true);
+            // Pre-fill form with user data if logged in
+            form.setValue('name', user.name || '');
+            console.log("CheckoutForm: User is logged in:", user.email);
+            return;
+          }
         }
+        setIsLoggedIn(false);
+        console.log("CheckoutForm: User is NOT logged in");
       } catch (error) {
-        console.error("Error parsing user data:", error);
+        console.error("Error checking login status:", error);
         setIsLoggedIn(false);
       }
-    } else {
-      setIsLoggedIn(false);
-    }
+    };
+    
+    // Check on mount
+    checkLoginStatus();
+    
+    // Also check when storage or login state changes
+    window.addEventListener('storage', checkLoginStatus);
+    window.addEventListener('userLoginStateChanged', checkLoginStatus);
+    
+    return () => {
+      window.removeEventListener('storage', checkLoginStatus);
+      window.removeEventListener('userLoginStateChanged', checkLoginStatus);
+    };
   }, [form]);
-
-  // Redirect to login if not logged in
-  useEffect(() => {
-    if (!isLoggedIn) {
-      toast({
-        title: "Требуется авторизация",
-        description: "Пожалуйста, войдите в систему, чтобы оформить заказ",
-        variant: "destructive",
-      });
-      navigate('/login');
-    }
-  }, [isLoggedIn, navigate]);
 
   // Check if all items in cart are available in stock
   const validateCartStock = () => {
@@ -104,7 +106,9 @@ const CheckoutForm = () => {
       return;
     }
     
-    if (!isLoggedIn || !loggedInUserEmail) {
+    // Check login status again just before submission
+    const userData = localStorage.getItem('user');
+    if (!userData) {
       toast({
         title: "Требуется авторизация",
         description: "Пожалуйста, войдите в систему для оформления заказа",
@@ -114,61 +118,85 @@ const CheckoutForm = () => {
       return;
     }
     
-    // Validate stock quantities
-    if (!validateCartStock()) {
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    // Use the logged-in user's email and name for the order
-    const userEmail = loggedInUserEmail;
-    const userName = loggedInUserName || values.name;
-    
-    // Create order with the correct user information
-    const newOrder = addOrder({
-      items: cart,
-      customer: {
-        name: userName,
-        phone: values.phone,
-        email: userEmail
-      },
-      total: totalPrice,
-      userEmail: userEmail
-    });
-    
-    // Update book stock in localStorage
-    const storedBooks = localStorage.getItem('books');
-    if (storedBooks) {
-      try {
-        const books = JSON.parse(storedBooks);
-        const updatedBooks = books.map((book: any) => {
-          const cartItem = cart.find(item => item.id === book.id);
-          if (cartItem) {
-            // Reduce the stock by the quantity ordered
-            return { ...book, stock: Math.max(0, book.stock - cartItem.quantity) };
-          }
-          return book;
+    try {
+      // Verify user data is valid
+      const user = JSON.parse(userData);
+      if (!user || !user.email) {
+        toast({
+          title: "Ошибка авторизации",
+          description: "Информация о пользователе повреждена. Пожалуйста, войдите заново.",
+          variant: "destructive",
         });
-        localStorage.setItem('books', JSON.stringify(updatedBooks));
-      } catch (error) {
-        console.error("Error updating book stock:", error);
+        localStorage.removeItem('user');
+        window.dispatchEvent(new Event('userLoginStateChanged'));
+        navigate('/login');
+        return;
       }
+      
+      // Validate stock quantities
+      if (!validateCartStock()) {
+        return;
+      }
+      
+      setIsSubmitting(true);
+      
+      // Use the logged-in user's email and name for the order
+      const userEmail = user.email;
+      const userName = user.name || values.name;
+      
+      // Create order with the correct user information
+      const newOrder = addOrder({
+        items: cart,
+        customer: {
+          name: userName,
+          phone: values.phone,
+          email: userEmail
+        },
+        total: totalPrice,
+        userEmail: userEmail
+      });
+      
+      // Update book stock in localStorage
+      const storedBooks = localStorage.getItem('books');
+      if (storedBooks) {
+        try {
+          const books = JSON.parse(storedBooks);
+          const updatedBooks = books.map((book: any) => {
+            const cartItem = cart.find(item => item.id === book.id);
+            if (cartItem) {
+              // Reduce the stock by the quantity ordered
+              return { ...book, stock: Math.max(0, book.stock - cartItem.quantity) };
+            }
+            return book;
+          });
+          localStorage.setItem('books', JSON.stringify(updatedBooks));
+        } catch (error) {
+          console.error("Error updating book stock:", error);
+        }
+      }
+      
+      // Clear cart
+      clearCart();
+      
+      // Show notification
+      toast({
+        title: "Заказ успешно оформлен",
+        description: `Номер вашего заказа: ${newOrder.id}`,
+      });
+      
+      // Redirect to profile page to see the order
+      navigate('/profile?tab=orders', { replace: true });
+      
+      setIsSubmitting(false);
+    } catch (error) {
+      console.error("Error processing order:", error);
+      toast({
+        title: "Ошибка",
+        description: "Произошла ошибка при оформлении заказа",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
     }
-    
-    // Clear cart
-    clearCart();
-    
-    // Show notification
-    toast({
-      title: "Заказ успешно оформлен",
-      description: `Номер вашего заказа: ${newOrder.id}`,
-    });
-    
-    // Redirect to profile page to see the order
-    navigate('/profile?tab=orders', { replace: true });
-    
-    setIsSubmitting(false);
   };
 
   // Don't render the form if not logged in
@@ -219,6 +247,7 @@ const CheckoutForm = () => {
             )}
           />
           
+          {/* Display readonly email field */}
           <div className="md:col-span-2">
             <p className="text-sm text-brown-600 mb-2">
               Email: <span className="font-medium">{loggedInUserEmail}</span>
