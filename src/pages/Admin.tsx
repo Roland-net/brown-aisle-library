@@ -6,7 +6,7 @@ import OrdersTable from '@/components/admin/OrdersTable';
 import EmailSender from '@/components/admin/EmailSender';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Mail } from 'lucide-react';
+import { Send } from 'lucide-react';
 
 const Admin = () => {
   const { books, setBooks, loading } = useAdminAuth();
@@ -49,7 +49,7 @@ const Admin = () => {
             <TabsTrigger value="stock">Управление запасами</TabsTrigger>
             <TabsTrigger value="orders">Заказы</TabsTrigger>
             <TabsTrigger value="email">
-              <Mail className="h-4 w-4 mr-2" />
+              <Send className="h-4 w-4 mr-2" />
               Отправка сообщений
             </TabsTrigger>
           </TabsList>

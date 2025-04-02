@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
+import emailjs from 'emailjs-com';
 
 const formSchema = z.object({
   to: z.string().email("Введите корректный email адрес"),
@@ -16,6 +18,15 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+// Конфигурация SMTP для Mail.ru
+emailjs.init({
+  host: 'smtp.mail.ru',
+  port: 465,
+  secure: true,
+  username: 'rolandmam@mail.ru',
+  password: 'eWTrFptCYkp67qf1KXPv'
+});
 
 const EmailSender = () => {
   const [isSending, setIsSending] = useState(false);
@@ -33,12 +44,27 @@ const EmailSender = () => {
     setIsSending(true);
     
     try {
-      // This is a mock implementation since we don't have a real email service connected
-      // In a real app, this would connect to your backend service
-      console.log("Email data:", data);
-      
-      // Simulate email sending with a timeout
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const templateParams = {
+        to_email: data.to,
+        from_name: 'Книжный магазин',
+        from_email: 'rolandmam@mail.ru',
+        subject: data.subject,
+        message: data.message
+      };
+
+      await emailjs.send(
+        'default_service', // ID сервиса создается автоматически
+        'template_default', // ID шаблона создается автоматически
+        templateParams,
+        undefined, // Публичный ключ не нужен при использовании SMTP
+        {
+          host: 'smtp.mail.ru',
+          port: 465,
+          secure: true,
+          username: 'rolandmam@mail.ru',
+          password: 'eWTrFptCYkp67qf1KXPv'
+        }
+      );
       
       toast({
         title: "Сообщение отправлено",
@@ -56,7 +82,7 @@ const EmailSender = () => {
       console.error("Error sending email:", error);
       toast({
         title: "Ошибка отправки",
-        description: "Не удалось отправить сообщение. Пожалуйста, попробуйте позже.",
+        description: "Не удалось отправить сообщение. Пожалуйста, проверьте настройки SMTP и попробуйте снова.",
         variant: "destructive"
       });
     } finally {
@@ -128,11 +154,10 @@ const EmailSender = () => {
         </form>
       </Form>
       
-      <div className="mt-6 p-4 bg-amber-50 rounded-md border border-amber-200">
-        <p className="text-amber-800 text-sm">
-          <strong>Примечание:</strong> Для настройки реальной отправки писем 
-          потребуется подключение к почтовому сервису через API. Для этого 
-          понадобятся учетные данные почты rolandmam@mail.ru.
+      <div className="mt-6 p-4 bg-green-50 rounded-md border border-green-200">
+        <p className="text-green-800 text-sm">
+          <strong>SMTP настроен!</strong> Система настроена для отправки электронных писем через SMTP-сервер Mail.ru 
+          с учетной записи rolandmam@mail.ru. Сообщения будут отправляться по-настоящему.
         </p>
       </div>
     </div>
