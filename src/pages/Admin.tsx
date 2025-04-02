@@ -3,8 +3,10 @@ import { useState, useEffect } from 'react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import BookStockTable from '@/components/admin/BookStockTable';
 import OrdersTable from '@/components/admin/OrdersTable';
+import EmailSender from '@/components/admin/EmailSender';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation, useNavigate } from 'react-router-dom';
+import { Mail } from 'lucide-react';
 
 const Admin = () => {
   const { books, setBooks, loading } = useAdminAuth();
@@ -46,6 +48,10 @@ const Admin = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="stock">Управление запасами</TabsTrigger>
             <TabsTrigger value="orders">Заказы</TabsTrigger>
+            <TabsTrigger value="email">
+              <Mail className="h-4 w-4 mr-2" />
+              Отправка сообщений
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="stock" className="space-y-6">
@@ -59,6 +65,13 @@ const Admin = () => {
             <div className="bg-white rounded-lg shadow-md p-6 overflow-hidden">
               <h2 className="text-xl font-medium mb-6 text-brown-700">Управление заказами</h2>
               <OrdersTable />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="email" className="space-y-6">
+            <div className="bg-white rounded-lg shadow-md p-6 overflow-hidden">
+              <h2 className="text-xl font-medium mb-6 text-brown-700">Отправка сообщений на почту</h2>
+              <EmailSender />
             </div>
           </TabsContent>
         </Tabs>
