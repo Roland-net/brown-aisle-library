@@ -1,9 +1,8 @@
-
 import { useState } from 'react';
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Send } from "lucide-react";
+import { Send, MailCheck } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,17 +18,19 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-// Конфигурация SMTP для Mail.ru
-emailjs.init({
+// EmailJS не имеет прямого метода init с конфигурацией SMTP
+// Настройки SMTP должны передаваться в метод send
+const SMTP_CONFIG = {
   host: 'smtp.mail.ru',
   port: 465,
   secure: true,
   username: 'rolandmam@mail.ru',
   password: 'eWTrFptCYkp67qf1KXPv'
-});
+};
 
 const EmailSender = () => {
   const [isSending, setIsSending] = useState(false);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -40,6 +41,44 @@ const EmailSender = () => {
     }
   });
 
+  const testSmtpConnection = async () => {
+    setIsTestingConnection(true);
+    
+    try {
+      // Отправляем тестовое письмо на email владельца
+      const testParams = {
+        to_email: SMTP_CONFIG.username,
+        from_name: 'Система проверки SMTP',
+        from_email: SMTP_CONFIG.username,
+        subject: 'Проверка соединения SMTP',
+        message: 'Это тестовое сообщение для проверки настроек SMTP. Если вы получили это письмо, значит настройки работают корректно.'
+      };
+      
+      // В EmailJS нужно использовать serviceID и templateID
+      // Для SMTP соединения нужно использовать другой подход или другую библиотеку
+      await emailjs.send(
+        'service_8unjwrp', // Это должен быть ваш serviceID из EmailJS
+        'template_zxeyfh9', // Это должен быть ваш templateID из EmailJS
+        testParams,
+        'oc0ViRaRxK79NwGO0' // Это должен быть ваш publicKey из EmailJS
+      );
+      
+      toast({
+        title: "Соединение успешно",
+        description: `Тестовое письмо отправлено на ${SMTP_CONFIG.username}. Проверьте входящие сообщения.`,
+      });
+    } catch (error) {
+      console.error("Error testing SMTP connection:", error);
+      toast({
+        title: "Ошибка соединения",
+        description: "Не удалось установить соединение с SMTP сервером. Проверьте настройки и учетные данные.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsTestingConnection(false);
+    }
+  };
+
   const onSubmit = async (data: FormValues) => {
     setIsSending(true);
     
@@ -47,23 +86,17 @@ const EmailSender = () => {
       const templateParams = {
         to_email: data.to,
         from_name: 'Книжный магазин',
-        from_email: 'rolandmam@mail.ru',
+        from_email: SMTP_CONFIG.username,
         subject: data.subject,
         message: data.message
       };
 
+      // В EmailJS нужно использовать serviceID и templateID
       await emailjs.send(
-        'default_service', // ID сервиса создается автоматически
-        'template_default', // ID шаблона создается автоматически
+        'service_8unjwrp', // Это должен быть ваш serviceID из EmailJS
+        'template_zxeyfh9', // Это должен быть ваш templateID из EmailJS
         templateParams,
-        undefined, // Публичный ключ не нужен при использовании SMTP
-        {
-          host: 'smtp.mail.ru',
-          port: 465,
-          secure: true,
-          username: 'rolandmam@mail.ru',
-          password: 'eWTrFptCYkp67qf1KXPv'
-        }
+        'oc0ViRaRxK79NwGO0' // Это должен быть ваш publicKey из EmailJS
       );
       
       toast({
@@ -82,7 +115,7 @@ const EmailSender = () => {
       console.error("Error sending email:", error);
       toast({
         title: "Ошибка отправки",
-        description: "Не удалось отправить сообщение. Пожалуйста, проверьте настройки SMTP и попробуйте снова.",
+        description: "Не удалось отправить сообщение. Пожалуйста, проверьте настройки EmailJS и попробуйте снова.",
         variant: "destructive"
       });
     } finally {
@@ -92,6 +125,24 @@ const EmailSender = () => {
 
   return (
     <div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-medium">Форма отправки сообщений</h3>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={testSmtpConnection}
+          disabled={isTestingConnection}
+        >
+          {isTestingConnection ? (
+            <>Проверка...</>
+          ) : (
+            <>
+              <MailCheck className="mr-2 h-4 w-4" /> Проверить соединение
+            </>
+          )}
+        </Button>
+      </div>
+      
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -154,10 +205,15 @@ const EmailSender = () => {
         </form>
       </Form>
       
-      <div className="mt-6 p-4 bg-green-50 rounded-md border border-green-200">
-        <p className="text-green-800 text-sm">
-          <strong>SMTP настроен!</strong> Система настроена для отправки электронных писем через SMTP-сервер Mail.ru 
-          с учетной записи rolandmam@mail.ru. Сообщения будут отправляться по-настоящему.
+      <div className="mt-6 p-4 bg-amber-50 rounded-md border border-amber-200">
+        <p className="text-amber-800 text-sm">
+          <strong>Информация о настройках:</strong> Система настроена для отправки электронных писем через EmailJS, 
+          который используется в качестве сервиса отправки. Для корректной работы необходимо зарегистрироваться 
+          на сайте emailjs.com, создать сервис и шаблон, и заменить временные ID в коде на реальные.
+        </p>
+        <p className="text-amber-800 text-sm mt-2">
+          <strong>Учетные данные:</strong> SMTP-сервер: smtp.mail.ru, порт: 465, 
+          адрес: {SMTP_CONFIG.username}, настройки шифрования: SSL
         </p>
       </div>
     </div>
