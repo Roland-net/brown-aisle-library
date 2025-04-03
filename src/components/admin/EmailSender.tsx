@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -8,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import emailjs from 'emailjs-com';
 
 const formSchema = z.object({
   to: z.string().email("Введите корректный email адрес"),
@@ -18,14 +18,13 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-// EmailJS не имеет прямого метода init с конфигурацией SMTP
-// Настройки SMTP должны передаваться в метод send
+// Конфигурация SMTP
 const SMTP_CONFIG = {
   host: 'smtp.mail.ru',
   port: 465,
   secure: true,
-  username: 'rolandmam@mail.ru',
-  password: 'eWTrFptCYkp67qf1KXPv'
+  user: 'rolandmam@mail.ru',
+  pass: 'eWTrFptCYkp67qf1KXPv'
 };
 
 const EmailSender = () => {
@@ -41,31 +40,55 @@ const EmailSender = () => {
     }
   });
 
+  // Функция для отправки почты через API бэкенда
+  const sendEmail = async (params: { to: string; subject: string; text: string }) => {
+    try {
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...params,
+          from: SMTP_CONFIG.user,
+          smtpConfig: {
+            host: SMTP_CONFIG.host,
+            port: SMTP_CONFIG.port,
+            secure: SMTP_CONFIG.secure,
+            auth: {
+              user: SMTP_CONFIG.user,
+              pass: SMTP_CONFIG.pass
+            }
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Ошибка отправки письма');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Ошибка отправки:', error);
+      throw error;
+    }
+  };
+
   const testSmtpConnection = async () => {
     setIsTestingConnection(true);
     
     try {
-      // Отправляем тестовое письмо на email владельца
-      const testParams = {
-        to_email: SMTP_CONFIG.username,
-        from_name: 'Система проверки SMTP',
-        from_email: SMTP_CONFIG.username,
+      // Отправляем тестовое письмо через наш API
+      await sendEmail({
+        to: SMTP_CONFIG.user,
         subject: 'Проверка соединения SMTP',
-        message: 'Это тестовое сообщение для проверки настроек SMTP. Если вы получили это письмо, значит настройки работают корректно.'
-      };
-      
-      // В EmailJS нужно использовать serviceID и templateID
-      // Для SMTP соединения нужно использовать другой подход или другую библиотеку
-      await emailjs.send(
-        'service_8unjwrp', // Это должен быть ваш serviceID из EmailJS
-        'template_zxeyfh9', // Это должен быть ваш templateID из EmailJS
-        testParams,
-        'oc0ViRaRxK79NwGO0' // Это должен быть ваш publicKey из EmailJS
-      );
+        text: 'Это тестовое сообщение для проверки настроек SMTP. Если вы получили это письмо, значит настройки работают корректно.'
+      });
       
       toast({
         title: "Соединение успешно",
-        description: `Тестовое письмо отправлено на ${SMTP_CONFIG.username}. Проверьте входящие сообщения.`,
+        description: `Тестовое письмо отправлено на ${SMTP_CONFIG.user}. Проверьте входящие сообщения.`,
       });
     } catch (error) {
       console.error("Error testing SMTP connection:", error);
@@ -83,28 +106,19 @@ const EmailSender = () => {
     setIsSending(true);
     
     try {
-      const templateParams = {
-        to_email: data.to,
-        from_name: 'Книжный магазин',
-        from_email: SMTP_CONFIG.username,
+      // Отправляем письмо через наш API
+      await sendEmail({
+        to: data.to,
         subject: data.subject,
-        message: data.message
-      };
-
-      // В EmailJS нужно использовать serviceID и templateID
-      await emailjs.send(
-        'service_8unjwrp', // Это должен быть ваш serviceID из EmailJS
-        'template_zxeyfh9', // Это должен быть ваш templateID из EmailJS
-        templateParams,
-        'oc0ViRaRxK79NwGO0' // Это должен быть ваш publicKey из EmailJS
-      );
+        text: data.message
+      });
       
       toast({
         title: "Сообщение отправлено",
         description: `Письмо успешно отправлено на адрес ${data.to}`,
       });
       
-      // Reset the form but keep the "to" field
+      // Сбрасываем форму, но сохраняем поле "to"
       form.reset({ 
         to: data.to,
         subject: "", 
@@ -115,7 +129,7 @@ const EmailSender = () => {
       console.error("Error sending email:", error);
       toast({
         title: "Ошибка отправки",
-        description: "Не удалось отправить сообщение. Пожалуйста, проверьте настройки EmailJS и попробуйте снова.",
+        description: "Не удалось отправить сообщение. Проверьте настройки SMTP и попробуйте снова.",
         variant: "destructive"
       });
     } finally {
@@ -207,13 +221,13 @@ const EmailSender = () => {
       
       <div className="mt-6 p-4 bg-amber-50 rounded-md border border-amber-200">
         <p className="text-amber-800 text-sm">
-          <strong>Информация о настройках:</strong> Система настроена для отправки электронных писем через EmailJS, 
-          который используется в качестве сервиса отправки. Для корректной работы необходимо зарегистрироваться 
-          на сайте emailjs.com, создать сервис и шаблон, и заменить временные ID в коде на реальные.
+          <strong>Важно:</strong> Для корректной работы отправки писем необходимо настроить API 
+          на сервере, который будет обрабатывать запросы `/api/send-email`. 
+          В текущей реализации предполагается, что такой API существует и принимает указанные параметры.
         </p>
         <p className="text-amber-800 text-sm mt-2">
-          <strong>Учетные данные:</strong> SMTP-сервер: smtp.mail.ru, порт: 465, 
-          адрес: {SMTP_CONFIG.username}, настройки шифрования: SSL
+          <strong>Учетные данные:</strong> SMTP-сервер: {SMTP_CONFIG.host}, порт: {SMTP_CONFIG.port}, 
+          адрес: {SMTP_CONFIG.user}, настройки шифрования: SSL
         </p>
       </div>
     </div>
