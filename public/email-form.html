@@ -56,16 +56,34 @@
         button:hover {
             background-color: #57320e;
         }
+        .alert {
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border-radius: 0.375rem;
+            display: none;
+        }
+        .alert-success {
+            background-color: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        .alert-error {
+            background-color: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #ef4444;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <div id="statusAlert" class="alert"></div>
         <form id="emailForm">
             <div class="form-group">
                 <label for="to">Кому:</label>
                 <input 
                     type="email" 
                     id="to" 
+                    name="to"
                     placeholder="email@example.com" 
                     required
                 />
@@ -76,6 +94,7 @@
                 <input 
                     type="text" 
                     id="subject" 
+                    name="subject"
                     placeholder="Тема сообщения" 
                     required
                 />
@@ -85,6 +104,7 @@
                 <label for="message">Сообщение:</label>
                 <textarea 
                     id="message" 
+                    name="message"
                     placeholder="Введите текст сообщения..." 
                     required
                 ></textarea>
@@ -107,20 +127,73 @@
             const to = document.getElementById('to').value;
             const subject = document.getElementById('subject').value;
             const message = document.getElementById('message').value;
+            const submitButton = document.getElementById('submitButton');
+            const statusAlert = document.getElementById('statusAlert');
             
-            // Simulate sending email
-            console.log("Email data:", { to, subject, message });
+            // Disable button during submission
+            submitButton.disabled = true;
+            submitButton.innerHTML = 'Отправка...';
             
-            // Alert user of success
-            alert(`Сообщение для ${to} успешно отправлено!`);
+            // Create form data for PHP
+            const formData = new FormData();
+            formData.append('to', to);
+            formData.append('subject', subject);
+            formData.append('message', message);
             
-            // Reset form
-            this.reset();
-            
-            // Notify parent frame if exists
-            if (window.parent && window.parent !== window) {
-                window.parent.postMessage({ type: 'emailSent', to, subject }, '*');
-            }
+            // Send request to PHP mailer script
+            fetch('/form-lesson/mail.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Show status message
+                statusAlert.style.display = 'block';
+                
+                if (data.status === 'success') {
+                    statusAlert.className = 'alert alert-success';
+                    statusAlert.textContent = data.message;
+                    
+                    // Reset form
+                    document.getElementById('emailForm').reset();
+                    
+                    // Notify parent frame if exists
+                    if (window.parent && window.parent !== window) {
+                        window.parent.postMessage({ 
+                            type: 'emailSent', 
+                            to, 
+                            subject 
+                        }, '*');
+                    }
+                } else {
+                    statusAlert.className = 'alert alert-error';
+                    statusAlert.textContent = data.message;
+                }
+                
+                // Re-enable button
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"></path><path d="M22 2L15 22L11 13L2 9L22 2Z"></path></svg> Отправить сообщение';
+                
+                // Hide alert after 5 seconds
+                setTimeout(() => {
+                    statusAlert.style.display = 'none';
+                }, 5000);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                statusAlert.style.display = 'block';
+                statusAlert.className = 'alert alert-error';
+                statusAlert.textContent = 'Произошла ошибка при отправке сообщения';
+                
+                // Re-enable button
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"></path><path d="M22 2L15 22L11 13L2 9L22 2Z"></path></svg> Отправить сообщение';
+                
+                // Hide alert after 5 seconds
+                setTimeout(() => {
+                    statusAlert.style.display = 'none';
+                }, 5000);
+            });
         });
     </script>
 </body>

@@ -1,36 +1,47 @@
+
 <?php 
 
 require_once('phpmailer/PHPMailerAutoload.php');
 $mail = new PHPMailer;
 $mail->CharSet = 'utf-8';
 
-
-$phone = $_POST['user_phone'];
-
+// Получаем данные из POST запроса
+$phone = $_POST['user_phone'] ?? '';
+$to = $_POST['to'] ?? 'roladn.ttt@mail.ru';
+$subject = $_POST['subject'] ?? 'Заказ книг';
+$message = $_POST['message'] ?? '';
 
 //$mail->SMTPDebug = 3;                               // Enable verbose debug output
 
 $mail->isSMTP();                                      // Set mailer to use SMTP
-$mail->Host = 'smtp.mail.ru';  																							// Specify main and backup SMTP servers
+$mail->Host = 'smtp.mail.ru';                         // Specify main and backup SMTP servers
 $mail->SMTPAuth = true;                               // Enable SMTP authentication
-$mail->Username = 'rolandmam@mail.ru'; // Ваш логин от почты с которой будут отправляться письма
-$mail->Password = 'eWTrFptCYkp67qf1KXPv'; // Ваш пароль от почты с которой будут отправляться письма
+$mail->Username = 'rolandmam@mail.ru';                // Ваш логин от почты с которой будут отправляться письма
+$mail->Password = 'eWTrFptCYkp67qf1KXPv';            // Ваш пароль от почты с которой будут отправляться письма
 $mail->SMTPSecure = 'ssl';                            // Enable TLS encryption, `ssl` also accepted
-$mail->Port = 465; // TCP port to connect to / этот порт может отличаться у других провайдеров
+$mail->Port = 465;                                    // TCP port to connect to
 
-$mail->setFrom('rolandmam@mail.ru'); // от кого будет уходить письмо?
-$mail->addAddress('roladn.ttt@mail.ru');     // Кому будет уходить письмо 
-//$mail->addAddress('ellen@example.com');               // Name is optional
-//$mail->addReplyTo('info@example.com', 'Information');
-//$mail->addCC('cc@example.com');
-//$mail->addBCC('bcc@example.com');
-//$mail->addAttachment('/var/tmp/file.tar.gz');         // Add attachments
-//$mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
+$mail->setFrom('rolandmam@mail.ru');                  // от кого будет уходить письмо
+$mail->addAddress($to);                               // Кому будет уходить письмо 
+
 $mail->isHTML(true);                                  // Set email format to HTML
 
-$mail->Subject = 'Заказ книг';
-$mail->Body    = '' ' Нужны Книги ' .$phone.  ;
-$mail->AltBody = '';
+$mail->Subject = $subject;
+$mail->Body = $message ? $message : 'Нужны Книги: ' . $phone;
+$mail->AltBody = strip_tags($message ? $message : 'Нужны Книги: ' . $phone);
 
+// Отправляем письмо и формируем ответ
+$response = array();
 
+if ($mail->send()) {
+    $response['status'] = 'success';
+    $response['message'] = 'Письмо успешно отправлено';
+} else {
+    $response['status'] = 'error';
+    $response['message'] = 'Ошибка при отправке: ' . $mail->ErrorInfo;
+}
+
+// Возвращаем ответ в формате JSON
+header('Content-Type: application/json');
+echo json_encode($response);
 ?>
