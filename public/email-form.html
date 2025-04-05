@@ -72,6 +72,15 @@
             color: #b91c1c;
             border: 1px solid #ef4444;
         }
+        #debug {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            font-family: monospace;
+            font-size: 12px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -118,6 +127,7 @@
                 Отправить сообщение
             </button>
         </form>
+        <div id="debug"></div>
     </div>
     
     <script>
@@ -129,6 +139,7 @@
             const message = document.getElementById('message').value;
             const submitButton = document.getElementById('submitButton');
             const statusAlert = document.getElementById('statusAlert');
+            const debugElement = document.getElementById('debug');
             
             // Disable button during submission
             submitButton.disabled = true;
@@ -140,15 +151,30 @@
             formData.append('subject', subject);
             formData.append('message', message);
             
+            // Debug info
+            debugElement.style.display = 'block';
+            debugElement.textContent = 'Отправка запроса на: /form-lesson/mail.php\n';
+            debugElement.textContent += `to: ${to}\nsubject: ${subject}\nmessage: ${message.substring(0, 30)}...`;
+            
             // Send request to PHP mailer script
             fetch('/form-lesson/mail.php', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                debugElement.textContent += `\nСтатус ответа: ${response.status} ${response.statusText}\n`;
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ошибка: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 // Show status message
                 statusAlert.style.display = 'block';
+                
+                // Add debug info
+                debugElement.textContent += `Данные ответа: ${JSON.stringify(data)}\n`;
                 
                 if (data.status === 'success') {
                     statusAlert.className = 'alert alert-success';
@@ -181,9 +207,11 @@
             })
             .catch(error => {
                 console.error('Error:', error);
+                debugElement.textContent += `\nОшибка: ${error.message}`;
+                
                 statusAlert.style.display = 'block';
                 statusAlert.className = 'alert alert-error';
-                statusAlert.textContent = 'Произошла ошибка при отправке сообщения';
+                statusAlert.textContent = 'Произошла ошибка при отправке сообщения: ' + error.message;
                 
                 // Re-enable button
                 submitButton.disabled = false;
@@ -194,6 +222,14 @@
                     statusAlert.style.display = 'none';
                 }, 5000);
             });
+        });
+        
+        // Debug toggle
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.code === 'KeyD') {
+                const debug = document.getElementById('debug');
+                debug.style.display = debug.style.display === 'none' ? 'block' : 'none';
+            }
         });
     </script>
 </body>
