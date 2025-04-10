@@ -19,7 +19,7 @@ $message = $_POST['message'] ?? '';
 $logMessage = "Request received. To: $to, Subject: $subject";
 error_log($logMessage);
 
-//$mail->SMTPDebug = 3;                               // Enable verbose debug output
+$mail->SMTPDebug = 3;                               // Enable verbose debug output
 
 $mail->isSMTP();                                      // Set mailer to use SMTP
 $mail->Host = 'smtp.mail.ru';                         // Specify main and backup SMTP servers

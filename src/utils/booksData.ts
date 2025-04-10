@@ -8,7 +8,7 @@ export const booksData: BookType[] = [
     author: "Джейн Остин",
     price: 650,
     genre: "Классическая литература",
-    image: "https://cdn.book24.ru/v2/ASE000000000843249/COVER/cover3d__w600.webp",
+    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=387",
     stock: 12
   },
   {
@@ -17,7 +17,7 @@ export const booksData: BookType[] = [
     author: "Михаил Булгаков",
     price: 720,
     genre: "Классическая литература",
-    image: "https://cdn.book24.ru/v2/ASE000000000836750/COVER/cover3d__w600.webp",
+    image: "https://images.unsplash.com/photo-1589998059171-988d887df646?auto=format&fit=crop&q=80&w=1476",
     stock: 8
   },
   {
@@ -26,7 +26,7 @@ export const booksData: BookType[] = [
     author: "Джордж Оруэлл",
     price: 580,
     genre: "Антиутопия",
-    image: "https://cdn.book24.ru/v2/ASE000000000851179/COVER/cover3d__w600.webp",
+    image: "https://images.unsplash.com/photo-1541963463532-d68292c34b19?auto=format&fit=crop&q=80&w=1376",
     stock: 5
   },
   {
@@ -35,7 +35,7 @@ export const booksData: BookType[] = [
     author: "Дж. К. Роулинг",
     price: 850,
     genre: "Фэнтези",
-    image: "https://cdn.book24.ru/v2/ITD000000000912310/COVER/cover3d__w600.webp",
+    image: "https://images.unsplash.com/photo-1551269901-5c5e14c25df7?auto=format&fit=crop&q=80&w=1469",
     stock: 15
   },
   {
@@ -44,7 +44,7 @@ export const booksData: BookType[] = [
     author: "Федор Достоевский",
     price: 690,
     genre: "Классическая литература",
-    image: "https://cdn.book24.ru/v2/ASE000000000843284/COVER/cover3d__w600.webp",
+    image: "https://images.unsplash.com/photo-1629992101753-56d196c8aabb?auto=format&fit=crop&q=80&w=1390",
     stock: 7
   },
   {
@@ -53,7 +53,7 @@ export const booksData: BookType[] = [
     author: "Лев Толстой",
     price: 950,
     genre: "Классическая литература",
-    image: "https://cdn.book24.ru/v2/ASE000000000836754/COVER/cover3d__w600.webp",
+    image: "https://images.unsplash.com/photo-1535905557558-afc4877a26fc?auto=format&fit=crop&q=80&w=1374",
     stock: 3
   },
   {
@@ -62,7 +62,7 @@ export const booksData: BookType[] = [
     author: "Эрих Мария Ремарк",
     price: 680,
     genre: "Современная проза",
-    image: "https://cdn.book24.ru/v2/ASE000000000850890/COVER/cover3d__w600.webp",
+    image: "https://images.unsplash.com/photo-1513001900722-370f803f498d?auto=format&fit=crop&q=80&w=1374",
     stock: 9
   },
   {
@@ -71,7 +71,7 @@ export const booksData: BookType[] = [
     author: "Дэниел Киз",
     price: 590,
     genre: "Научная фантастика",
-    image: "https://cdn.book24.ru/v2/ASE000000000851175/COVER/cover3d__w600.webp",
+    image: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&q=80&w=1529",
     stock: 11
   },
   {
@@ -80,7 +80,7 @@ export const booksData: BookType[] = [
     author: "Джек Лондон",
     price: 710,
     genre: "Современная проза",
-    image: "https://cdn.book24.ru/v2/ASE000000000836800/COVER/cover3d__w600.webp",
+    image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=1498",
     stock: 6
   },
   {
@@ -89,7 +89,7 @@ export const booksData: BookType[] = [
     author: "Артур Конан Дойл",
     price: 760,
     genre: "Детектив",
-    image: "https://cdn.book24.ru/v2/ASE000000000851006/COVER/cover3d__w600.webp",
+    image: "https://images.unsplash.com/photo-1598618443855-232ee0f819f6?auto=format&fit=crop&q=80&w=1470",
     stock: 4
   },
   {
@@ -98,7 +98,7 @@ export const booksData: BookType[] = [
     author: "Фрэнсис Скотт Фицджеральд",
     price: 620,
     genre: "Классическая литература",
-    image: "https://cdn.book24.ru/v2/ASE000000000836781/COVER/cover3d__w600.webp",
+    image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=1374",
     stock: 10
   },
   {
@@ -107,7 +107,7 @@ export const booksData: BookType[] = [
     author: "Дж. Р. Р. Толкин",
     price: 880,
     genre: "Фэнтези",
-    image: "https://cdn.book24.ru/v2/ASE000000000850957/COVER/cover3d__w600.webp",
+    image: "https://images.unsplash.com/photo-1618945524163-32451704cbb8?auto=format&fit=crop&q=80&w=1470",
     stock: 2
   }
 ];
