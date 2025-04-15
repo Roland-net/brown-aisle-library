@@ -6,15 +6,12 @@ import OrdersTable from '@/components/admin/OrdersTable';
 import { SupplierMessages } from '@/components/supplier/SupplierMessages';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Mail } from 'lucide-react';
-import { toast } from "@/components/ui/use-toast";
 
 const Admin = () => {
   const { books, setBooks, loading, isAdmin, isSupplier } = useAdminAuth();
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Инициализируем стартовую вкладку на основе URL параметра
   const getInitialTab = () => {
     const params = new URLSearchParams(location.search);
     return params.get('tab') || "stock";
@@ -22,7 +19,6 @@ const Admin = () => {
   
   const [activeTab, setActiveTab] = useState(getInitialTab);
   
-  // Синхронизируем параметры URL с активной вкладкой
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tabParam = params.get('tab');
@@ -31,34 +27,6 @@ const Admin = () => {
       navigate(`/admin?tab=${activeTab}`, { replace: true });
     }
   }, [activeTab, location.search, navigate]);
-  
-  // Listen for messages from the iframe
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type === 'emailSent') {
-        // Save message for supplier
-        const newMessage = {
-          date: new Date().toISOString(),
-          subject: 'Сообщение от администратора',
-          message: event.data.message,
-          from: 'Администратор'
-        };
-        
-        const storedMessages = localStorage.getItem('supplierMessages') || '[]';
-        const messages = JSON.parse(storedMessages);
-        messages.push(newMessage);
-        localStorage.setItem('supplierMessages', JSON.stringify(messages));
-        
-        toast({
-          title: "Сообщение отправлено",
-          description: `Сообщение для поставщика успешно отправлено!`,
-        });
-      }
-    };
-    
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
   
   if (loading) {
     return (
@@ -81,10 +49,6 @@ const Admin = () => {
               <>
                 <TabsTrigger value="stock">Управление запасами</TabsTrigger>
                 <TabsTrigger value="orders">Заказы</TabsTrigger>
-                <TabsTrigger value="email">
-                  <Mail className="h-4 w-4 mr-2" />
-                  Отправить сообщение
-                </TabsTrigger>
               </>
             )}
             {isSupplier && (
@@ -105,18 +69,6 @@ const Admin = () => {
                 <div className="bg-white rounded-lg shadow-md p-6 overflow-hidden">
                   <h2 className="text-xl font-medium mb-6 text-brown-700">Управление заказами</h2>
                   <OrdersTable />
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="email" className="space-y-6">
-                <div className="bg-white rounded-lg shadow-md p-6 overflow-hidden">
-                  <h2 className="text-xl font-medium mb-6 text-brown-700">Отправка сообщения поставщику</h2>
-                  
-                  <iframe 
-                    src="/email-form.html?to=avdalyan.roland@mail.ru" 
-                    title="Email Form" 
-                    className="w-full border-0 min-h-[400px]"
-                  ></iframe>
                 </div>
               </TabsContent>
             </>
