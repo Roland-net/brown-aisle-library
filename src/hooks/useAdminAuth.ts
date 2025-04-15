@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
@@ -33,10 +32,15 @@ export const useAdminAuth = (): UseAdminAuthResult => {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
       
-      setIsAdmin(parsedUser.email === 'roladn.ttt@mail.ru');
-      setIsSupplier(parsedUser.email === 'avdalyan.roland@mail.ru');
+      const adminEmail = 'roladn.ttt@mail.ru';
+      const supplierEmail = 'avdalyan.roland@mail.ru';
       
-      if (parsedUser.email !== 'roladn.ttt@mail.ru' && parsedUser.email !== 'avdalyan.roland@mail.ru') {
+      setIsAdmin(parsedUser.email === adminEmail);
+      setIsSupplier(parsedUser.email === supplierEmail);
+      
+      if (parsedUser.email === supplierEmail) {
+        navigate('/admin?tab=messages');
+      } else if (parsedUser.email !== adminEmail && parsedUser.email !== supplierEmail) {
         toast({
           title: 'Доступ запрещен',
           description: 'У вас нет прав для доступа к этой странице',

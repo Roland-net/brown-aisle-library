@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import BookStockTable from '@/components/admin/BookStockTable';
@@ -73,7 +72,7 @@ const Admin = () => {
     <div className="pt-24 pb-12 bg-cream-50 min-h-screen">
       <div className="container mx-auto px-6">
         <h1 className="text-3xl font-serif mb-8 text-brown-800">
-          {isSupplier ? "Панель поставщика" : "Администрирование"}
+          {isSupplier ? "Сообщения от администратора" : "Администрирование"}
         </h1>
         
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -91,7 +90,7 @@ const Admin = () => {
             {isSupplier && (
               <TabsTrigger value="messages">
                 <MessageCircle className="h-4 w-4 mr-2" />
-                Сообщения
+                Входящие сообщения
               </TabsTrigger>
             )}
           </TabsList>
