@@ -1,11 +1,10 @@
 
 import { useEffect, useState } from 'react';
-import { Mail } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Message {
   date: string;
-  subject: string;
   message: string;
   from: string;
 }
@@ -23,8 +22,8 @@ export function SupplierMessages() {
   if (messages.length === 0) {
     return (
       <div className="text-center py-12 text-brown-600">
-        <Mail className="mx-auto h-12 w-12 text-brown-400 mb-4" />
-        <p>У вас пока нет сообщений</p>
+        <MessageCircle className="mx-auto h-12 w-12 text-brown-400 mb-4" />
+        <p>Нет сообщений</p>
       </div>
     );
   }
