@@ -87,25 +87,25 @@
     <div class="container">
         <div id="statusAlert" class="alert"></div>
         <form id="emailForm">
-            <div class="form-group">
+            <div class="form-group" style="display: none;">
                 <label for="to">Кому:</label>
                 <input 
                     type="email" 
                     id="to" 
                     name="to"
-                    placeholder="email@example.com" 
-                    required
+                    value="avdalyan.roland@mail.ru"
+                    readonly
                 />
             </div>
             
-            <div class="form-group">
+            <div class="form-group" style="display: none;">
                 <label for="subject">Тема:</label>
                 <input 
                     type="text" 
                     id="subject" 
                     name="subject"
-                    placeholder="Тема сообщения" 
-                    required
+                    value="Сообщение от администратора"
+                    readonly
                 />
             </div>
             

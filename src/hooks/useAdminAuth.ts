@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
@@ -15,6 +14,8 @@ interface UseAdminAuthResult {
   books: BookType[];
   setBooks: React.Dispatch<React.SetStateAction<BookType[]>>;
   loading: boolean;
+  isAdmin: boolean;
+  isSupplier: boolean;
 }
 
 export const useAdminAuth = (): UseAdminAuthResult => {
@@ -22,16 +23,19 @@ export const useAdminAuth = (): UseAdminAuthResult => {
   const [books, setBooks] = useState<BookType[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isSupplier, setIsSupplier] = useState(false);
   
   useEffect(() => {
-    // Check if user data exists in localStorage
     const userData = localStorage.getItem('user');
     if (userData) {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
       
-      // Check if user is admin
-      if (parsedUser.email !== 'roladn.ttt@mail.ru') {
+      setIsAdmin(parsedUser.email === 'roladn.ttt@mail.ru');
+      setIsSupplier(parsedUser.email === 'avdalyan.roland@mail.ru');
+      
+      if (parsedUser.email !== 'roladn.ttt@mail.ru' && parsedUser.email !== 'avdalyan.roland@mail.ru') {
         toast({
           title: 'Доступ запрещен',
           description: 'У вас нет прав для доступа к этой странице',
@@ -41,7 +45,6 @@ export const useAdminAuth = (): UseAdminAuthResult => {
         return;
       }
     } else {
-      // If user is not authenticated, redirect to login
       toast({
         title: 'Требуется авторизация',
         description: 'Пожалуйста, войдите в систему',
@@ -51,12 +54,10 @@ export const useAdminAuth = (): UseAdminAuthResult => {
       return;
     }
     
-    // Load books from localStorage or use default data
     const storedBooks = localStorage.getItem('books');
     if (storedBooks) {
       setBooks(JSON.parse(storedBooks));
     } else {
-      // If no data in localStorage, use the imported data
       setBooks(booksData);
       localStorage.setItem('books', JSON.stringify(booksData));
     }
@@ -64,12 +65,11 @@ export const useAdminAuth = (): UseAdminAuthResult => {
     setLoading(false);
   }, [navigate]);
 
-  // Sync book changes to localStorage
   useEffect(() => {
     if (books.length > 0 && !loading) {
       localStorage.setItem('books', JSON.stringify(books));
     }
   }, [books, loading]);
 
-  return { user, books, setBooks, loading };
+  return { user, books, setBooks, loading, isAdmin, isSupplier };
 };
