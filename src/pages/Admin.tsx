@@ -20,7 +20,7 @@ const Admin = () => {
   
   const getInitialTab = () => {
     const params = new URLSearchParams(location.search);
-    return params.get('tab') || "stock";
+    return params.get('tab') || (isSupplier ? "messages" : "stock");
   };
   
   const [activeTab, setActiveTab] = useState(getInitialTab);
@@ -89,7 +89,10 @@ const Admin = () => {
               </>
             )}
             {isSupplier && (
-              <TabsTrigger value="messages">Сообщения</TabsTrigger>
+              <TabsTrigger value="messages">
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Сообщения
+              </TabsTrigger>
             )}
           </TabsList>
           
