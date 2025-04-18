@@ -11,7 +11,7 @@ import {
   AvatarFallback,
   AvatarImage
 } from "@/components/ui/avatar";
-import { User, Package, Settings, LogOut } from 'lucide-react';
+import { User, Package, Settings, LogOut, MessageCircle } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 const UserMenu = () => {
@@ -76,6 +76,8 @@ const UserMenu = () => {
   
   if (!user) return null;
   
+  const isSupplier = user.email === 'avdalyan.roland@mail.ru';
+  
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -114,6 +116,16 @@ const UserMenu = () => {
             <Package size={16} />
             <span>Мои заказы</span>
           </Link>
+          
+          {isSupplier && (
+            <Link 
+              to="/admin?tab=messages" 
+              className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm rounded-md hover:bg-brown-100 transition-colors"
+            >
+              <MessageCircle size={16} />
+              <span>Сообщения</span>
+            </Link>
+          )}
           
           {user.email === 'roladn.ttt@mail.ru' && (
             <Link 

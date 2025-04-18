@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ShoppingCart, User, Settings } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, Settings, MessageCircle } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ const Navbar = () => {
   // Получаем информацию о пользователе из localStorage
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSupplier, setIsSupplier] = useState(false);
   
   useEffect(() => {
     // Проверяем, есть ли данные пользователя в localStorage
@@ -29,8 +31,9 @@ const Navbar = () => {
     if (userData) {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
-      // Проверяем, является ли пользователь администратором
+      // Проверяем, является ли пользователь администратором или поставщиком
       setIsAdmin(parsedUser.email === 'roladn.ttt@mail.ru');
+      setIsSupplier(parsedUser.email === 'avdalyan.roland@mail.ru');
     }
   }, []);
   
@@ -63,6 +66,11 @@ const Navbar = () => {
   // Добавляем ссылку администрирования, если пользователь - администратор
   if (isAdmin) {
     navLinks.push({ name: "Администрирование", path: "/admin" });
+  }
+  
+  // Добавляем ссылку на сообщения, если пользователь - поставщик
+  if (isSupplier) {
+    navLinks.push({ name: "Сообщения", path: "/admin?tab=messages" });
   }
   
   const isActive = (path: string) => location.pathname === path;
